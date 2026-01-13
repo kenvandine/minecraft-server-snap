@@ -40,6 +40,7 @@ else
     echo "rcon.password=$RCON_PASS" >> "$PROPS_FILE"
 fi
 
+# FIXME: Get rcon port from snap setting
 # Ensure port is standard (optional, but good for avahi consistency)
 if ! grep -q "rcon.port" "$PROPS_FILE"; then
     echo "rcon.port=25575" >> "$PROPS_FILE"
