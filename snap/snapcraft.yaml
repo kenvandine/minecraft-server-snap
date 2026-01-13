@@ -1,0 +1,77 @@
+name: minecraft-server
+base: core24
+version: '0.1'
+summary: Managed Minecraft server with RCON and Avahi discovery.
+description: |
+  A strictly confined Minecraft server. 
+  - Place server.jar in $SNAP_COMMON/server/
+  - Auto-enables RCON
+  - Auto-broadcasts via Avahi (mDNS)
+
+grade: stable
+confinement: strict
+
+platforms:
+  amd64:
+
+apps:
+  server:
+    command: bin/start-server.sh
+    daemon: simple
+    restart-condition: always
+    plugs: [network, network-bind, mount-observe]
+    environment:
+      JAVA_HOME: $SNAP/usr/lib/jvm/java-21-openjdk-amd64
+      PATH: $JAVA_HOME/bin:$PATH
+      # Force Java to use a temp directory we control
+      JAVA_TOOL_OPTIONS: "-Djava.io.tmpdir=$SNAP_COMMON/tmp"
+      JAVA_SECURITY_DIR: "$SNAP/etc/ssl/certs/java/cacerts"
+
+  # The Avahi broadcaster daemon
+  discovery:
+    command: bin/publish-service.sh
+    daemon: simple
+    restart-condition: always
+    # avahi-control is needed to talk to the system avahi daemon
+    plugs: [network, avahi-control]
+
+  # The administration CLI tool
+  mcron:
+    command: bin/mcron-wrapper.sh
+    plugs: [network]
+
+parts:
+  launcher:
+    plugin: dump
+    source: ./scripts
+    organize:
+      start-server.sh: bin/start-server.sh
+      mcron-wrapper.sh: bin/mcron-wrapper.sh
+      publish-service.sh: bin/publish-service.sh
+
+  jre:
+    plugin: nil
+    stage-packages:
+      - openjdk-21-jre-headless
+      - ca-certificates
+      - ca-certificates-java
+    override-build: |
+      # Define where Java expects the certs to be
+      JAVA_SECURITY_DIR="/etc/ssl/certs/java/cacerts"
+      craftctl default
+  avahi:
+    plugin: nil
+    stage-packages:
+      - avahi-utils
+      - libavahi-client3
+      - libavahi-common3
+
+  mcrcon:
+    plugin: make
+    source: https://github.com/Tiiffi/mcrcon.git
+    build-environment:
+      - CFLAGS: "-std=gnu99"
+    override-build: |
+      mkdir -p $CRAFT_PART_INSTALL/bin
+      make
+      install -D mcrcon $CRAFT_PART_INSTALL/bin/mcrcon
