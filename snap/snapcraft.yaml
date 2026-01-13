@@ -1,6 +1,6 @@
 name: minecraft-server
 base: core24
-version: '0.1'
+version: '0.2'
 summary: Managed Minecraft server with RCON and Avahi discovery.
 description: |
   A strictly confined Minecraft server. 
@@ -23,8 +23,8 @@ apps:
     environment:
       JAVA_HOME: $SNAP/usr/lib/jvm/java-21-openjdk-amd64
       PATH: $JAVA_HOME/bin:$PATH
-      # Force Java to use a temp directory we control
-      JAVA_TOOL_OPTIONS: "-Djava.io.tmpdir=$SNAP_COMMON/tmp"
+      # Force Java to use a temp directory we control and tell java where to find certs
+      JAVA_TOOL_OPTIONS: "-Djava.io.tmpdir=$SNAP_COMMON/tmp -Djavax.net.ssl.trustStore=$SNAP/etc/ssl/certs/java/cacerts"
       JAVA_SECURITY_DIR: "$SNAP/etc/ssl/certs/java/cacerts"
 
   # The Avahi broadcaster daemon
@@ -55,10 +55,15 @@ parts:
       - openjdk-21-jre-headless
       - ca-certificates
       - ca-certificates-java
+    build-packages:
+      - ca-certificates-java
+      - openjdk-21-jdk-headless
     override-build: |
-      # Define where Java expects the certs to be
-      JAVA_SECURITY_DIR="/etc/ssl/certs/java/cacerts"
       craftctl default
+      update-ca-certificates -f
+      mkdir -p $CRAFT_PART_INSTALL/etc/ssl/certs/java
+      cp -L /etc/ssl/certs/java/cacerts $CRAFT_PART_INSTALL/etc/ssl/certs/java/
+
   avahi:
     plugin: nil
     stage-packages:
@@ -72,6 +77,5 @@ parts:
     build-environment:
       - CFLAGS: "-std=gnu99"
     override-build: |
-      mkdir -p $CRAFT_PART_INSTALL/bin
       make
       install -D mcrcon $CRAFT_PART_INSTALL/bin/mcrcon
