@@ -27,9 +27,9 @@ jobs:
       pack-version: ${{ steps.meta.outputs.version }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
@@ -53,7 +53,7 @@ jobs:
           echo "name=$(python3 -c "import yaml; d=yaml.safe_load(open('${{ inputs.config }}')); print(d['name'])")" >> $GITHUB_OUTPUT
           echo "version=$(python3 -c "import yaml; d=yaml.safe_load(open('${{ inputs.config }}')); print(d['version'])")" >> $GITHUB_OUTPUT
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: pack-artifacts
           path: dist/
@@ -66,12 +66,12 @@ jobs:
 
     steps:
       - name: Checkout launcher template
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: kenvandine/minecraft-server-snap
           sparse-checkout: launcher
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: pack-artifacts
           path: pack-dist/
@@ -88,7 +88,7 @@ jobs:
           sed -i "s/productName: .*/productName: \"$PACK_NAME\"/" launcher/electron-builder.yml
           sed -i "s/appId: .*/appId: \"com.minecraft.${SAFE_NAME}\"/" launcher/electron-builder.yml
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: '20'
 
@@ -98,7 +98,7 @@ jobs:
           npm ci
           npm run build:linux
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: launcher-linux
           path: launcher/dist/*.AppImage
@@ -111,12 +111,12 @@ jobs:
 
     steps:
       - name: Checkout launcher template
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: kenvandine/minecraft-server-snap
           sparse-checkout: launcher
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: pack-artifacts
           path: pack-dist/
@@ -135,7 +135,7 @@ jobs:
           sed -i "s/productName: .*/productName: \"$PACK_NAME\"/" launcher/electron-builder.yml
           sed -i "s/appId: .*/appId: \"com.minecraft.${SAFE_NAME}\"/" launcher/electron-builder.yml
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: '20'
 
@@ -145,7 +145,7 @@ jobs:
           npm ci
           npm run build:win
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: launcher-windows
           path: launcher/dist/*.exe
