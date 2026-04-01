@@ -1,0 +1,152 @@
+name: Reusable Pack Build
+
+on:
+  workflow_call:
+    inputs:
+      config:
+        description: Path to the pack YAML config file
+        required: true
+        type: string
+      tools-version:
+        description: Version of game-create tools to use (tag or 'latest')
+        required: false
+        default: latest
+        type: string
+      retention-days:
+        description: Days to retain build artifacts (1–90)
+        required: false
+        default: 30
+        type: number
+
+jobs:
+  build-artifacts:
+    name: Build pack artifacts
+    runs-on: ubuntu-latest
+    outputs:
+      pack-name: ${{ steps.meta.outputs.name }}
+      pack-version: ${{ steps.meta.outputs.version }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install game-create
+        run: |
+          if [ "${{ inputs.tools-version }}" = "latest" ]; then
+            TOOLS_TAG=$(curl -s https://api.github.com/repos/kenvandine/minecraft-server-snap/releases/latest | jq -r .tag_name)
+          else
+            TOOLS_TAG="${{ inputs.tools-version }}"
+          fi
+          curl -L -o /usr/local/bin/game-create \
+            "https://github.com/kenvandine/minecraft-server-snap/releases/download/${TOOLS_TAG}/game-create-linux"
+          chmod +x /usr/local/bin/game-create
+
+      - name: Build artifacts
+        run: game-create build ${{ inputs.config }} --output ./dist
+
+      - name: Read pack metadata
+        id: meta
+        run: |
+          echo "name=$(python3 -c "import yaml; d=yaml.safe_load(open('${{ inputs.config }}')); print(d['name'])")" >> $GITHUB_OUTPUT
+          echo "version=$(python3 -c "import yaml; d=yaml.safe_load(open('${{ inputs.config }}')); print(d['version'])")" >> $GITHUB_OUTPUT
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pack-artifacts
+          path: dist/
+          retention-days: ${{ inputs.retention-days }}
+
+  build-launcher-linux:
+    name: Build launcher (Linux AppImage)
+    needs: build-artifacts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout launcher template
+        uses: actions/checkout@v4
+        with:
+          repository: kenvandine/minecraft-server-snap
+          sparse-checkout: launcher
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: pack-artifacts
+          path: pack-dist/
+
+      - name: Inject client artifact
+        run: |
+          mkdir -p launcher/resources/mods
+          tar -xJf pack-dist/client.tar.xz -C launcher/resources/
+
+      - name: Update app name in electron-builder config
+        run: |
+          PACK_NAME="${{ needs.build-artifacts.outputs.pack-name }}"
+          SAFE_NAME=$(echo "$PACK_NAME" | tr ' ' '-' | tr -d "'")
+          sed -i "s/productName: .*/productName: \"$PACK_NAME\"/" launcher/electron-builder.yml
+          sed -i "s/appId: .*/appId: \"com.minecraft.${SAFE_NAME}\"/" launcher/electron-builder.yml
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install and build
+        working-directory: launcher
+        run: |
+          npm ci
+          npm run build:linux
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: launcher-linux
+          path: launcher/dist/*.AppImage
+          retention-days: ${{ inputs.retention-days }}
+
+  build-launcher-windows:
+    name: Build launcher (Windows exe)
+    needs: build-artifacts
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout launcher template
+        uses: actions/checkout@v4
+        with:
+          repository: kenvandine/minecraft-server-snap
+          sparse-checkout: launcher
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: pack-artifacts
+          path: pack-dist/
+
+      - name: Inject client artifact
+        shell: bash
+        run: |
+          mkdir -p launcher/resources/mods
+          tar -xJf pack-dist/client.tar.xz -C launcher/resources/
+
+      - name: Update app name in electron-builder config
+        shell: bash
+        run: |
+          PACK_NAME="${{ needs.build-artifacts.outputs.pack-name }}"
+          SAFE_NAME=$(echo "$PACK_NAME" | tr ' ' '-' | tr -d "'")
+          sed -i "s/productName: .*/productName: \"$PACK_NAME\"/" launcher/electron-builder.yml
+          sed -i "s/appId: .*/appId: \"com.minecraft.${SAFE_NAME}\"/" launcher/electron-builder.yml
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install and build
+        working-directory: launcher
+        run: |
+          npm ci
+          npm run build:win
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: launcher-windows
+          path: launcher/dist/*.exe
+          retention-days: ${{ inputs.retention-days }}
