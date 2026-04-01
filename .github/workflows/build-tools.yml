@@ -36,7 +36,7 @@ jobs:
         working-directory: tools/game-create
         run: |
           pyinstaller --onefile --name game-create \
-            game_create/__main__.py
+            run.py
           mkdir -p ../dist
           mv dist/game-create ../dist/${{ matrix.artifact }}
 
@@ -44,7 +44,7 @@ jobs:
         if: runner.os == 'Windows'
         working-directory: tools/game-create
         run: |
-          pyinstaller --onefile --name game-create game_create/__main__.py
+          pyinstaller --onefile --name game-create run.py
           New-Item -ItemType Directory -Force -Path ../dist | Out-Null
           Move-Item dist/game-create.exe ../dist/${{ matrix.artifact }}
 
