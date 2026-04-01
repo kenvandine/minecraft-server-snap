@@ -1,0 +1,31 @@
+name: Build Snap
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'snap/**'
+      - 'scripts/**'
+      - '.github/workflows/build-snap.yml'
+  pull_request:
+    paths:
+      - 'snap/**'
+      - 'scripts/**'
+      - '.github/workflows/build-snap.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build minecraft-server snap
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: snapcore/action-build@v1
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: minecraft-server-snap
+          path: "*.snap"
+          retention-days: 30
