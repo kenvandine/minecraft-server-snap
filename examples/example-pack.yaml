@@ -1,0 +1,30 @@
+name: "Kaden's Revenge"
+version: "1.0.0"
+minecraft_version: "1.21.1"
+mod_loader: fabric
+mod_loader_version: "latest"
+installer_version: "latest"
+
+# Customize launcher appearance
+background_color: "#0d1117"
+# background_image: "https://example.com/background.png"
+
+# Azure app client ID for Microsoft auth (required for online play)
+# See: https://github.com/kenvandine/minecraft-server-snap/blob/main/docs/azure-setup.md
+# azure_client_id: "your-client-id-here"
+
+# Override default Java memory args
+java_args: "-Xms2G -Xmx4G"
+
+mods:
+  - name: "Fabric API"
+    url: "https://cdn.modrinth.com/data/P7dR8mSH/versions/yGAe1owa/fabric-api-0.116.9%2B1.21.1.jar"
+    side: both
+
+  - name: "Sodium"
+    url: "https://cdn.modrinth.com/data/AANobbMI/versions/u1OEbNKx/sodium-fabric-0.6.13%2Bmc1.21.1.jar"
+    side: client
+
+  - name: "Lithium"
+    url: "https://cdn.modrinth.com/data/gvQqBUqZ/versions/XQJtuOTA/lithium-fabric-0.15.3%2Bmc1.21.1.jar"
+    side: both

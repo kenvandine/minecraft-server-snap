@@ -1,0 +1,71 @@
+name: Build Tools
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-game-create:
+    name: Build game-create (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            artifact: game-create-linux
+          - os: windows-latest
+            artifact: game-create-windows.exe
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        working-directory: tools/game-create
+        run: |
+          pip install -e .
+          pip install pyinstaller
+
+      - name: Build binary (Linux)
+        if: runner.os == 'Linux'
+        working-directory: tools/game-create
+        run: |
+          pyinstaller --onefile --name game-create \
+            game_create/cli.py
+          mv dist/game-create ../dist/${{ matrix.artifact }}
+
+      - name: Build binary (Windows)
+        if: runner.os == 'Windows'
+        working-directory: tools/game-create
+        run: |
+          pyinstaller --onefile --name game-create game_create/cli.py
+          Move-Item dist/game-create.exe ../dist/${{ matrix.artifact }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: tools/dist/${{ matrix.artifact }}
+
+  release:
+    name: Publish release
+    needs: build-game-create
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*
+          generate_release_notes: true

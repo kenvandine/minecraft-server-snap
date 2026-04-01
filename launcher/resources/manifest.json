@@ -1,0 +1,29 @@
+{
+  "name": "Kaden's Revenge",
+  "version": "1.0.0",
+  "minecraft_version": "1.21.1",
+  "mod_loader": "fabric",
+  "mod_loader_version": "0.18.6",
+  "installer_version": "1.1.1",
+  "java_args": "-Xms2G -Xmx4G",
+  "background_color": "#0d1117",
+  "background_image": null,
+  "azure_client_id": null,
+  "mods": [
+    {
+      "name": "Fabric API",
+      "filename": "fabric-api-0.116.9%2B1.21.1.jar",
+      "side": "both"
+    },
+    {
+      "name": "Sodium",
+      "filename": "sodium-fabric-0.6.13%2Bmc1.21.1.jar",
+      "side": "client"
+    },
+    {
+      "name": "Lithium",
+      "filename": "lithium-fabric-0.15.3%2Bmc1.21.1.jar",
+      "side": "both"
+    }
+  ]
+}

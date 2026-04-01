@@ -1,0 +1,36 @@
+appId: "com.minecraft.kadens-revenge"
+productName: "Kaden's Revenge"
+icon: src/renderer/assets/icon.png
+directories:
+  output: dist
+  buildResources: build
+
+files:
+  - src/**/*
+  - resources/**/*
+  - "!resources/mods/.gitkeep"
+
+extraResources:
+  - from: resources/
+    to: .
+    filter:
+      - "**/*"
+
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+  category: Game
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
