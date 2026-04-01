@@ -125,36 +125,67 @@ The injection happens in the GitHub workflow before `electron-builder` runs.
 
 - Node.js 20+
 - npm 10+
+- Python 3.11+ with `game-create` installed (see [game-create.md](./game-create.md#from-source))
 
 ### Steps
 
 ```bash
-# 1. Build pack artifacts
-game-create build pack.yaml --output ./dist
+# 1. Build pack artifacts (run from the repo root, with venv active)
+source .venv/bin/activate
+game-create build pack.yaml --output ./dist-pack
 
-# 2. Inject into launcher resources
+# 2. Inject client artifact into launcher resources
 cd /path/to/minecraft-server-snap/launcher
 mkdir -p resources/mods
-tar -xJf /path/to/dist/client.tar.xz -C resources/
+tar -xJf /path/to/dist-pack/client.tar.xz -C resources/
 
-# 3. Install dependencies
+# 3. Update the app name in electron-builder.yml to match your pack
+#    (sed example — or edit the file directly)
+sed -i 's/^productName:.*/productName: "My Game Name"/' electron-builder.yml
+sed -i 's/^appId:.*/appId: "com.minecraft.my-game-name"/' electron-builder.yml
+
+# 4. Install dependencies
 npm install
 
-# 4. Run in development mode
+# 5. Run in development mode (no build needed — faster iteration)
 npm start
 
-# 5. Build distributable
+# 6. Build distributable AppImage
 npm run build:linux    # → dist/*.AppImage
-npm run build:win      # → dist/*.exe  (cross-compile or run on Windows)
+npm run build:win      # → dist/*.exe  (run on Windows or use a Windows runner)
 npm run build          # both
+```
+
+### Running the AppImage
+
+AppImages require FUSE to mount themselves. If FUSE is not available on your system:
+
+```bash
+# Standard (requires libfuse2)
+chmod +x "My\ Game-1.0.0.AppImage"
+./"My Game-1.0.0.AppImage"
+
+# Without FUSE (extracts to a temp dir and runs)
+./"My Game-1.0.0.AppImage" --appimage-extract-and-run
+```
+
+To install FUSE on Ubuntu/Debian:
+```bash
+sudo apt install libfuse2
 ```
 
 ### Testing without Microsoft auth
 
-You can test the launcher UI and game launch by leaving `azure_client_id` out of
-`pack.yaml`. The launcher will skip authentication. Note that without a valid access
-token, online-mode servers will reject the connection — use a LAN world or an
-offline-mode server for testing.
+If `azure_client_id` is not set in `pack.yaml`, the launcher shows a **Play Offline**
+section instead of the Microsoft sign-in button. Enter any username (1–16 characters)
+and click **Play Offline**. This generates a random UUID and uses `--userType legacy`,
+which works for:
+- Singleplayer worlds
+- LAN servers
+- Servers running with `online-mode=false`
+
+Online-mode servers (the default for public servers) will reject connections without
+a valid Microsoft access token.
 
 ---
 

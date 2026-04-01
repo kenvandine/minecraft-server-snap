@@ -26,12 +26,23 @@ Invoke-WebRequest -Uri https://github.com/kenvandine/minecraft-server-snap/relea
 
 ### From source
 
-Requires Python 3.11+.
+Requires Python 3.11+. Use a virtual environment to avoid conflicts with system packages.
 
 ```bash
 git clone https://github.com/kenvandine/minecraft-server-snap
-cd minecraft-server-snap/tools/game-create
-pip install -e .
+cd minecraft-server-snap
+
+python3 -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+
+pip install -e tools/game-create/
+game-create --help
+```
+
+The venv only needs to be created once. On subsequent sessions, just activate it:
+
+```bash
+source .venv/bin/activate
 ```
 
 ---
