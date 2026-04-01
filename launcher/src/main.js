@@ -5,6 +5,13 @@ const path = require('path')
 const GameManager = require('./game-manager')
 const Auth = require('./auth')
 
+// Enable Wayland support on Linux — auto-selects Wayland when WAYLAND_DISPLAY
+// is set, falls back to X11 otherwise. Must be called before app.whenReady().
+if (process.platform === 'linux') {
+  app.commandLine.appendSwitch('ozone-platform-hint', 'auto')
+  app.commandLine.appendSwitch('enable-features', 'WaylandWindowDecorations')
+}
+
 const resourcesPath = app.isPackaged
   ? process.resourcesPath
   : path.join(__dirname, '..', 'resources')
