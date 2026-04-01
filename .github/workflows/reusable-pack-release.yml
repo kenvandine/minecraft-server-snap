@@ -19,6 +19,8 @@ on:
     secrets:
       GH_TOKEN:
         required: true
+      azure_client_id:
+        required: false
 
 jobs:
   build-artifacts:
@@ -45,6 +47,21 @@ jobs:
           curl -L -o /usr/local/bin/game-create \
             "https://github.com/kenvandine/minecraft-server-snap/releases/download/${TOOLS_TAG}/game-create-linux"
           chmod +x /usr/local/bin/game-create
+
+      - name: Inject azure_client_id
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.azure_client_id }}
+        run: |
+          if [ -n "$AZURE_CLIENT_ID" ]; then
+            python3 -c "
+import yaml, os
+with open('${{ inputs.config }}') as f:
+    d = yaml.safe_load(f)
+d['azure_client_id'] = os.environ['AZURE_CLIENT_ID']
+with open('${{ inputs.config }}', 'w') as f:
+    yaml.dump(d, f, default_flow_style=False, allow_unicode=True)
+"
+          fi
 
       - name: Build artifacts
         run: game-create build ${{ inputs.config }} --output ./dist
