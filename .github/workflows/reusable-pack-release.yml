@@ -37,6 +37,9 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Install Python dependencies
+        run: pip install pyyaml --quiet
+
       - name: Install game-create
         run: |
           if [ "${{ inputs.tools-version }}" = "latest" ]; then
