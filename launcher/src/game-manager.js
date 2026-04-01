@@ -267,7 +267,6 @@ class GameManager {
     const fabricJsonUrl = `${FABRIC_META}/versions/loader` +
       `/${this.manifest.minecraft_version}` +
       `/${this.manifest.mod_loader_version}` +
-      `/${this.manifest.installer_version}` +
       `/profile/json`
 
     const fabricJson = await fetchJson(fabricJsonUrl)
