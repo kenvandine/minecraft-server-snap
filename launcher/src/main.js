@@ -5,7 +5,9 @@ const path = require('path')
 const GameManager = require('./game-manager')
 const Auth = require('./auth')
 
-const resourcesPath = process.resourcesPath || path.join(__dirname, '..', 'resources')
+const resourcesPath = app.isPackaged
+  ? process.resourcesPath
+  : path.join(__dirname, '..', 'resources')
 const manifest = require(path.join(resourcesPath, 'manifest.json'))
 
 let mainWindow
@@ -34,6 +36,7 @@ function createMainWindow() {
     resizable: false,
     frame: false,
     show: false,
+    icon: path.join(__dirname, 'renderer', 'assets', 'icon.png'),
     backgroundColor: manifest.background_color || '#0d1117',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),

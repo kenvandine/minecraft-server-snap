@@ -1,5 +1,6 @@
 appId: "com.minecraft.modpack-launcher"
 productName: "Minecraft Launcher"
+icon: src/renderer/assets/icon.png
 directories:
   output: dist
   buildResources: build

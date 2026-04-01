@@ -1,7 +1,5 @@
 'use strict'
 
-const { launcher } = window
-
 let manifest = null
 let gameInstalled = false
 let authenticated = false
