@@ -45,13 +45,9 @@ body {
 }
 
 #titlebar-logo {
-  height: 100%;
-  width: auto;
-  object-fit: cover;
-  object-position: center 30%;
-  /* Show only the central portion — crop to the logo mark */
-  aspect-ratio: 3 / 1;
-  border-right: 1px solid var(--border);
+  height: 22px;
+  width: 22px;
+  object-fit: contain;
 }
 
 #game-title {
