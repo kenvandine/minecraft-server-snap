@@ -21,7 +21,7 @@ on:
 jobs:
   build-artifacts:
     name: Build pack artifacts
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       pack-name: ${{ steps.meta.outputs.name }}
       pack-version: ${{ steps.meta.outputs.version }}
@@ -62,7 +62,7 @@ jobs:
   build-launcher-linux:
     name: Build launcher (Linux AppImage)
     needs: build-artifacts
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout launcher template
