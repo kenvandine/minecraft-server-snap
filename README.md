@@ -151,6 +151,7 @@ minecraft-server-snap/
 
 | Doc | Description |
 |-----|-------------|
+| [Finding mods](docs/finding-mods.md) | Searching Modrinth, getting URLs, choosing sides, starter mods |
 | [Pack YAML reference](docs/pack-yaml-reference.md) | All fields, mod `side` values, URL tips |
 | [game-create CLI](docs/game-create.md) | Build and publish commands |
 | [Electron launcher](docs/launcher.md) | How the launcher works, customization, building locally |
