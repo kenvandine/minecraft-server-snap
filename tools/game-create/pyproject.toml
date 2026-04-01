@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "game-create"
+version = "0.1.0"
+description = "CLI tool for building Minecraft modpack server and client artifacts"
+requires-python = ">=3.11"
+dependencies = [
+    "click>=8.1",
+    "pyyaml>=6.0",
+    "requests>=2.31",
+    "rich>=13.0",
+]
+
+[project.scripts]
+game-create = "game_create.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["game_create*"]

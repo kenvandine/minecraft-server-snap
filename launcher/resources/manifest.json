@@ -1,0 +1,14 @@
+{
+  "_comment": "This file is replaced at build time by game-create. Do not edit manually.",
+  "name": "Modpack Launcher",
+  "version": "0.0.0",
+  "minecraft_version": "1.21.1",
+  "mod_loader": "fabric",
+  "mod_loader_version": "0.16.9",
+  "installer_version": "1.0.1",
+  "java_args": "-Xms2G -Xmx4G",
+  "background_color": "#0d1117",
+  "background_image": null,
+  "azure_client_id": null,
+  "mods": []
+}

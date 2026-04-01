@@ -40,6 +40,13 @@ apps:
     command: bin/mcron-wrapper.sh
     plugs: [network]
 
+  # Install a modpack server artifact
+  install-pack:
+    command: bin/install-pack.sh
+    plugs:
+      - network
+      - home
+
 parts:
   launcher:
     plugin: dump
@@ -48,6 +55,7 @@ parts:
       start-server.sh: bin/start-server.sh
       mcron-wrapper.sh: bin/mcron-wrapper.sh
       publish-service.sh: bin/publish-service.sh
+      install-pack.sh: bin/install-pack.sh
 
   jre:
     plugin: nil

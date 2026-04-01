@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'">
+  <title>Minecraft Launcher</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="titlebar">
+    <div id="titlebar-left">
+      <img id="titlebar-logo" src="assets/shadowninjagames.png" alt="">
+      <span id="game-title">Loading...</span>
+    </div>
+    <button id="btn-close" class="titlebar-btn" title="Close">&#x2715;</button>
+  </div>
+
+  <div id="content">
+    <div id="hero">
+      <img id="hero-bg" src="assets/shadowninjagames.png" alt="">
+      <div id="hero-overlay"></div>
+      <div id="version-badge"></div>
+    </div>
+
+    <div id="sidebar">
+      <div id="account-section">
+        <div id="account-info" class="hidden">
+          <span id="account-name"></span>
+          <button id="btn-logout" class="small-btn">Sign out</button>
+        </div>
+        <button id="btn-login" class="action-btn">Sign in with Microsoft</button>
+      </div>
+
+      <div id="device-code-section" class="hidden">
+        <p>Visit <strong id="verification-url"></strong></p>
+        <p>and enter code:</p>
+        <div id="device-code"></div>
+        <button id="btn-open-url" class="small-btn">Open in browser</button>
+      </div>
+
+      <div id="mods-list">
+        <h3>Mods</h3>
+        <ul id="mods-ul"></ul>
+      </div>
+
+      <div id="status-area">
+        <div id="progress-bar-wrap" class="hidden">
+          <div id="progress-bar"></div>
+          <div id="progress-label"></div>
+        </div>
+        <div id="status-msg"></div>
+      </div>
+
+      <button id="btn-play" class="play-btn" disabled>PLAY</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
