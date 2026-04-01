@@ -85,6 +85,8 @@ ipcMain.handle('auth:login', async () => {
   })
 })
 
+ipcMain.handle('auth:offline-login', (_e, username) => auth.offlineLogin(username))
+
 ipcMain.handle('auth:logout', () => {
   auth.logout()
   return { ok: true }

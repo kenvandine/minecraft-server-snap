@@ -28,7 +28,11 @@
           <span id="account-name"></span>
           <button id="btn-logout" class="small-btn">Sign out</button>
         </div>
-        <button id="btn-login" class="action-btn">Sign in with Microsoft</button>
+        <button id="btn-login" class="action-btn hidden">Sign in with Microsoft</button>
+        <div id="offline-section" class="hidden">
+          <input id="offline-username" class="text-input" type="text" placeholder="Username" maxlength="16" spellcheck="false">
+          <button id="btn-offline-login" class="action-btn">Play Offline</button>
+        </div>
       </div>
 
       <div id="device-code-section" class="hidden">

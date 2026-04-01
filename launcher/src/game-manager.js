@@ -406,7 +406,7 @@ class GameManager {
       '--assetIndex', assetIndex,
       '--uuid', authProfile.uuid,
       '--accessToken', authProfile.accessToken,
-      '--userType', 'msa',
+      '--userType', authProfile.userType || 'msa',
       '--versionType', 'release',
     ]
   }

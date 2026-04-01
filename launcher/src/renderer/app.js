@@ -26,6 +26,13 @@ async function init() {
     ul.appendChild(li)
   }
 
+  // Show the right auth UI based on whether online auth is configured
+  if (manifest.azure_client_id) {
+    document.getElementById('btn-login').classList.remove('hidden')
+  } else {
+    document.getElementById('offline-section').classList.remove('hidden')
+  }
+
   // Check auth
   const authStatus = await launcher.auth.status()
   updateAuthUI(authStatus)
@@ -48,10 +55,11 @@ async function init() {
 
 function updateAuthUI(status) {
   authenticated = status.authenticated
-  document.getElementById('btn-login').classList.toggle('hidden', status.authenticated)
   document.getElementById('account-info').classList.toggle('hidden', !status.authenticated)
   if (status.authenticated) {
     document.getElementById('account-name').textContent = status.username
+    document.getElementById('btn-login').classList.add('hidden')
+    document.getElementById('offline-section').classList.add('hidden')
   }
   updatePlayBtn()
 }
@@ -136,9 +144,27 @@ document.getElementById('btn-login').addEventListener('click', async () => {
   }
 })
 
+document.getElementById('btn-offline-login').addEventListener('click', async () => {
+  const username = document.getElementById('offline-username').value.trim()
+  if (!username) { setStatus('Enter a username first.'); return }
+  const profile = await launcher.auth.offlineLogin(username)
+  updateAuthUI({ authenticated: true, username: profile.username })
+  setStatus(`Playing offline as ${profile.username}`)
+})
+
+document.getElementById('offline-username').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('btn-offline-login').click()
+})
+
 document.getElementById('btn-logout').addEventListener('click', async () => {
   await launcher.auth.logout()
   updateAuthUI({ authenticated: false })
+  // Restore the correct auth section
+  if (manifest && manifest.azure_client_id) {
+    document.getElementById('btn-login').classList.remove('hidden')
+  } else {
+    document.getElementById('offline-section').classList.remove('hidden')
+  }
   setStatus('Signed out.')
 })
 

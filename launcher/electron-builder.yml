@@ -1,5 +1,5 @@
-appId: "com.minecraft.modpack-launcher"
-productName: "Minecraft Launcher"
+appId: "com.minecraft.kadens-revenge"
+productName: "Kaden's Revenge"
 icon: src/renderer/assets/icon.png
 directories:
   output: dist
@@ -22,8 +22,6 @@ linux:
       arch:
         - x64
   category: Game
-  env:
-    ELECTRON_OZONE_PLATFORM_HINT: auto
 
 win:
   target:

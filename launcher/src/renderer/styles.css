@@ -132,6 +132,22 @@ body {
 
 #account-section { display: flex; flex-direction: column; gap: 8px; }
 
+#offline-section { display: flex; flex-direction: column; gap: 6px; }
+
+.text-input {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.text-input:focus { border-color: var(--accent); }
+.text-input::placeholder { color: var(--text-dim); }
+
 #account-info {
   display: flex;
   align-items: center;

@@ -93,10 +93,21 @@ class Auth {
       username: this._profile.name,
       uuid: this._profile.id,
       accessToken: this._accessToken,
+      userType: this._offline ? 'legacy' : 'msa',
     }
   }
 
+  offlineLogin(username) {
+    const { randomUUID } = require('crypto')
+    this._offline = true
+    this._profile = { name: username, id: randomUUID().replace(/-/g, '') }
+    this._accessToken = '0'
+    this._tokenExpiry = Date.now() + 365 * 24 * 60 * 60 * 1000
+    return { username, uuid: this._profile.id }
+  }
+
   logout() {
+    this._offline = false
     this._profile = null
     this._accessToken = null
     this._tokenExpiry = 0

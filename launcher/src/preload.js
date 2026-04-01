@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('launcher', {
   auth: {
     status: () => ipcRenderer.invoke('auth:status'),
     login: () => ipcRenderer.invoke('auth:login'),
+    offlineLogin: (username) => ipcRenderer.invoke('auth:offline-login', username),
     logout: () => ipcRenderer.invoke('auth:logout'),
     onDeviceCode: (cb) => ipcRenderer.on('auth:device-code', (_e, data) => cb(data)),
   },
