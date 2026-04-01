@@ -86,9 +86,11 @@ jobs:
       - name: Update app name in electron-builder config
         run: |
           PACK_NAME="${{ needs.build-artifacts.outputs.pack-name }}"
-          SAFE_NAME=$(echo "$PACK_NAME" | tr ' ' '-' | tr -d "'")
+          PACK_VERSION="${{ needs.build-artifacts.outputs.pack-version }}"
+          SLUG=$(echo "$PACK_NAME" | tr '[:upper:]' '[:lower:]' | sed "s/[^a-z0-9]/-/g" | sed 's/-\+/-/g' | sed 's/^-\|-$//g')
           sed -i "s/productName: .*/productName: \"$PACK_NAME\"/" launcher/electron-builder.yml
-          sed -i "s/appId: .*/appId: \"com.minecraft.${SAFE_NAME}\"/" launcher/electron-builder.yml
+          sed -i "s/appId: .*/appId: \"com.minecraft.${SLUG}\"/" launcher/electron-builder.yml
+          jq --arg name "$SLUG" --arg version "$PACK_VERSION" '.name = $name | .version = $version' launcher/package.json > /tmp/package.json && mv /tmp/package.json launcher/package.json
 
       - uses: actions/setup-node@v6
         with:
@@ -127,6 +129,16 @@ jobs:
         run: |
           mkdir -p launcher/resources/mods
           tar -xJf pack-dist/client.tar.xz -C launcher/resources/
+
+      - name: Update app name in electron-builder config
+        shell: bash
+        run: |
+          PACK_NAME="${{ needs.build-artifacts.outputs.pack-name }}"
+          PACK_VERSION="${{ needs.build-artifacts.outputs.pack-version }}"
+          SLUG=$(echo "$PACK_NAME" | tr '[:upper:]' '[:lower:]' | sed "s/[^a-z0-9]/-/g" | sed 's/-\+/-/g' | sed 's/^-\|-$//g')
+          sed -i "s/productName: .*/productName: \"$PACK_NAME\"/" launcher/electron-builder.yml
+          sed -i "s/appId: .*/appId: \"com.minecraft.${SLUG}\"/" launcher/electron-builder.yml
+          jq --arg name "$SLUG" --arg version "$PACK_VERSION" '.name = $name | .version = $version' launcher/package.json > /tmp/package.json && mv /tmp/package.json launcher/package.json
 
       - uses: actions/setup-node@v6
         with:

@@ -17,6 +17,7 @@ extraResources:
       - "**/*"
 
 linux:
+  artifactName: "${name}-${version}.${ext}"
   target:
     - target: AppImage
       arch:
@@ -24,6 +25,7 @@ linux:
   category: Game
 
 win:
+  artifactName: "${name}-setup-${version}.${ext}"
   target:
     - target: nsis
       arch:
