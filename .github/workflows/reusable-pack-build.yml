@@ -196,8 +196,8 @@ jobs:
           PACK_NAME="${{ needs.build-artifacts.outputs.pack-name }}"
           PACK_VERSION="${{ needs.build-artifacts.outputs.pack-version }}"
           SLUG=$(echo "$PACK_NAME" | tr '[:upper:]' '[:lower:]' | sed "s/[^a-z0-9]/-/g" | sed 's/-\+/-/g' | sed 's/^-\|-$//g')
-          sed -i "s/productName: .*/productName: \"$PACK_NAME\"/" launcher/electron-builder.yml
-          sed -i "s/appId: .*/appId: \"com.minecraft.${SLUG}\"/" launcher/electron-builder.yml
+          sed -i '' "s/productName: .*/productName: \"$PACK_NAME\"/" launcher/electron-builder.yml
+          sed -i '' "s/appId: .*/appId: \"com.minecraft.${SLUG}\"/" launcher/electron-builder.yml
           jq --arg name "$SLUG" --arg version "$PACK_VERSION" '.name = $name | .version = $version' launcher/package.json > launcher/package.json.tmp && mv launcher/package.json.tmp launcher/package.json
 
       - uses: actions/setup-node@v6
