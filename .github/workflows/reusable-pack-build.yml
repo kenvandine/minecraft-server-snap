@@ -168,3 +168,50 @@ jobs:
           name: launcher-windows
           path: launcher/dist/*.exe
           retention-days: ${{ inputs.retention-days }}
+
+  build-launcher-mac:
+    name: Build launcher (macOS arm64)
+    needs: build-artifacts
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout launcher template
+        uses: actions/checkout@v6
+        with:
+          repository: kenvandine/minecraft-server-snap
+          sparse-checkout: launcher
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: pack-artifacts
+          path: pack-dist/
+
+      - name: Inject client artifact
+        run: |
+          mkdir -p launcher/resources/mods
+          tar -xJf pack-dist/client.tar.xz -C launcher/resources/
+
+      - name: Update app name in electron-builder config
+        run: |
+          PACK_NAME="${{ needs.build-artifacts.outputs.pack-name }}"
+          PACK_VERSION="${{ needs.build-artifacts.outputs.pack-version }}"
+          SLUG=$(echo "$PACK_NAME" | tr '[:upper:]' '[:lower:]' | sed "s/[^a-z0-9]/-/g" | sed 's/-\+/-/g' | sed 's/^-\|-$//g')
+          sed -i "s/productName: .*/productName: \"$PACK_NAME\"/" launcher/electron-builder.yml
+          sed -i "s/appId: .*/appId: \"com.minecraft.${SLUG}\"/" launcher/electron-builder.yml
+          jq --arg name "$SLUG" --arg version "$PACK_VERSION" '.name = $name | .version = $version' launcher/package.json > launcher/package.json.tmp && mv launcher/package.json.tmp launcher/package.json
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+
+      - name: Install and build
+        working-directory: launcher
+        run: |
+          npm ci
+          npm run build:mac
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: launcher-mac
+          path: launcher/dist/*.dmg
+          retention-days: ${{ inputs.retention-days }}
