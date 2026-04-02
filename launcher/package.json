@@ -7,6 +7,7 @@
     "start": "electron .",
     "build:linux": "electron-builder --linux AppImage",
     "build:win": "electron-builder --win nsis",
+    "build:mac": "electron-builder --mac dmg",
     "build": "electron-builder --linux AppImage --win nsis"
   },
   "dependencies": {

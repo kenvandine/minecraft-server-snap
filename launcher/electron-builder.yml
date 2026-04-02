@@ -36,3 +36,11 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
+
+mac:
+  artifactName: "${name}-${version}.${ext}"
+  target:
+    - target: dmg
+      arch:
+        - arm64
+  category: public.app-category.games

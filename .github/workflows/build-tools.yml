@@ -53,9 +53,33 @@ jobs:
           name: ${{ matrix.artifact }}
           path: tools/dist/${{ matrix.artifact }}
 
+  build-launcher-mac:
+    name: Build launcher (macOS arm64)
+    runs-on: macos-15
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: launcher
+        run: npm ci
+
+      - name: Build launcher
+        working-directory: launcher
+        run: npm run build:mac
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: launcher-mac-arm64
+          path: launcher/dist/*.dmg
+
   release:
     name: Publish release
-    needs: build-game-create
+    needs: [build-game-create, build-launcher-mac]
     runs-on: ubuntu-24.04
     if: startsWith(github.ref, 'refs/tags/')
     permissions:
