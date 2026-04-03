@@ -35,6 +35,14 @@ mods:
   - name: "Lithium"
     url: "https://cdn.modrinth.com/data/gvQqBUqZ/versions/aTKSXM8f/lithium-fabric-mc1.21.1-0.13.0.jar"
     side: both
+
+  - name: "Iris Shaders"
+    url: "https://cdn.modrinth.com/data/YL57xq9U/versions/.../iris-fabric-mc1.21.1.jar"
+    side: client
+
+shader_packs:
+  - name: "Complementary Reimagined"
+    url: "https://cdn.modrinth.com/data/HVnmMxH1/versions/.../ComplementaryReimagined_r5.4.zip"
 ```
 
 ---
@@ -210,17 +218,50 @@ mods:
 
 ---
 
-## Finding mod URLs
+### `shader_packs` _(optional)_
+**Type**: list of shader pack entries
+
+Shader packs to bundle with the client. They are placed in `shaderpacks/` in the player's
+game directory and are always client-only. A shader-compatible renderer mod such as
+[Iris Shaders](https://modrinth.com/mod/iris) must also be included in `mods` for
+shader packs to have any effect.
+
+#### Shader pack entry fields
+
+| Field  | Type   | Required | Description |
+|--------|--------|----------|-------------|
+| `name` | string | yes      | Human-readable name |
+| `url`  | string | yes      | Direct download URL to the shader pack `.zip` file |
+
+```yaml
+mods:
+  - name: "Iris Shaders"
+    url: "https://cdn.modrinth.com/data/YL57xq9U/versions/.../iris-fabric-mc1.21.1.jar"
+    side: client
+
+shader_packs:
+  - name: "Complementary Reimagined"
+    url: "https://cdn.modrinth.com/data/HVnmMxH1/versions/.../ComplementaryReimagined_r5.4.zip"
+```
+
+---
+
+## Finding mod and shader URLs
 
 ### Modrinth (recommended)
-1. Open the mod page on [modrinth.com](https://modrinth.com)
+1. Open the mod or shader page on [modrinth.com](https://modrinth.com)
 2. Click **"Versions"**
 3. Find the version matching your `minecraft_version` and `fabric` loader
 4. Right-click the download button → **"Copy link address"**
 
-The URL will look like:
+Mod URLs look like:
 ```
 https://cdn.modrinth.com/data/{project-id}/versions/{version-id}/{filename}.jar
+```
+
+Shader pack URLs look like:
+```
+https://cdn.modrinth.com/data/{project-id}/versions/{version-id}/{filename}.zip
 ```
 
 These are stable, permanent CDN URLs — safe to pin in your YAML.
@@ -228,7 +269,7 @@ These are stable, permanent CDN URLs — safe to pin in your YAML.
 ### CurseForge
 CurseForge direct download URLs require an API key. Instead, use the
 [Modrinth mirror](https://modrinth.com) where most CurseForge mods are also published,
-or host the JAR in your own GitHub release and link to that.
+or host the file in your own GitHub release and link to that.
 
 ---
 

@@ -48,6 +48,13 @@ def build_artifacts(config: PackConfig, output_dir: Path, cache_dir: Path) -> tu
     console.print(f"\n[bold]Downloading client mods ({len(config.client_mods())} files)...")
     client_mod_paths = download_mods(config.client_mods(), client_mods_dir, label_prefix="[client] ")
 
+    # Download shader packs
+    shader_pack_paths = []
+    if config.shader_packs:
+        shader_packs_dir = cache_dir / "shaderpacks"
+        console.print(f"\n[bold]Downloading shader packs ({len(config.shader_packs)} files)...")
+        shader_pack_paths = download_mods(config.shader_packs, shader_packs_dir, label_prefix="[shader] ")
+
     manifest = {
         "name": config.name,
         "version": config.version,
@@ -63,6 +70,10 @@ def build_artifacts(config: PackConfig, output_dir: Path, cache_dir: Path) -> tu
             {"name": m.name, "filename": p.name, "side": m.side}
             for m, p in zip(config.client_mods(), client_mod_paths)
         ],
+        "shader_packs": [
+            {"name": s.name, "filename": p.name}
+            for s, p in zip(config.shader_packs, shader_pack_paths)
+        ],
     }
 
     # Create server artifact
@@ -74,7 +85,7 @@ def build_artifacts(config: PackConfig, output_dir: Path, cache_dir: Path) -> tu
     # Create client artifact
     client_artifact = output_dir / "client.tar.xz"
     console.print(f"\n[bold]Creating client.tar.xz...")
-    create_client_artifact(client_mod_paths, manifest, client_artifact)
+    create_client_artifact(client_mod_paths, manifest, client_artifact, shader_pack_paths)
     console.print(f"  -> {client_artifact} ({client_artifact.stat().st_size // 1024} KB)")
 
     return server_artifact, client_artifact

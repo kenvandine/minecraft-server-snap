@@ -28,3 +28,14 @@ mods:
   - name: "Lithium"
     url: "https://cdn.modrinth.com/data/gvQqBUqZ/versions/XQJtuOTA/lithium-fabric-0.15.3%2Bmc1.21.1.jar"
     side: both
+
+  # Iris is required for shader packs to work
+  - name: "Iris Shaders"
+    url: "https://cdn.modrinth.com/data/YL57xq9U/versions/..."
+    side: client
+
+# Shader packs (client-only, placed in shaderpacks/ in the game directory)
+# Requires a shader-compatible renderer mod such as Iris Shaders (above)
+# shader_packs:
+#   - name: "Complementary Reimagined"
+#     url: "https://cdn.modrinth.com/data/HVnmMxH1/versions/.../ComplementaryReimagined_r5.4.zip"

@@ -31,13 +31,16 @@ def create_client_artifact(
     mod_paths: list[Path],
     manifest: dict,
     output: Path,
+    shader_pack_paths: list[Path] | None = None,
 ) -> None:
     """
-    Creates client.tar.xz containing mods/ and manifest.json.
+    Creates client.tar.xz containing mods/, shaderpacks/, and manifest.json.
     This is extracted into the Electron app's resources/ directory at build time.
     """
     output.parent.mkdir(parents=True, exist_ok=True)
     with tarfile.open(output, "w:xz") as tar:
         for mod in mod_paths:
             tar.add(mod, arcname=f"mods/{mod.name}")
+        for shader in shader_pack_paths or []:
+            tar.add(shader, arcname=f"shaderpacks/{shader.name}")
         _add_json(tar, "manifest.json", manifest)

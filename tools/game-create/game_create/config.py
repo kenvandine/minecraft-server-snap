@@ -17,6 +17,12 @@ class Mod:
 
 
 @dataclass
+class ShaderPack:
+    name: str
+    url: str
+
+
+@dataclass
 class PackConfig:
     name: str
     version: str
@@ -25,6 +31,7 @@ class PackConfig:
     mod_loader_version: str
     installer_version: str = "latest"
     mods: List[Mod] = field(default_factory=list)
+    shader_packs: List[ShaderPack] = field(default_factory=list)
     java_args: str = "-Xms2G -Xmx4G"
     background_color: str = "#0d1117"
     background_image: Optional[str] = None
@@ -47,6 +54,11 @@ class PackConfig:
             for m in data.get("mods", [])
         ]
 
+        shader_packs = [
+            ShaderPack(name=s["name"], url=s["url"])
+            for s in data.get("shader_packs", [])
+        ]
+
         return cls(
             name=data["name"],
             version=data["version"],
@@ -55,6 +67,7 @@ class PackConfig:
             mod_loader_version=data.get("mod_loader_version", "latest"),
             installer_version=data.get("installer_version", "latest"),
             mods=mods,
+            shader_packs=shader_packs,
             java_args=data.get("java_args", "-Xms2G -Xmx4G"),
             background_color=data.get("background_color", "#0d1117"),
             background_image=data.get("background_image"),
