@@ -231,11 +231,8 @@ body {
 #progress-label {
   font-size: 11px;
   color: var(--text-dim);
-  position: absolute;
-  top: 8px;
-  left: 0;
-  right: 0;
   text-align: center;
+  margin-bottom: 5px;
 }
 
 #status-msg {

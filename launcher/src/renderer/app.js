@@ -88,12 +88,14 @@ function updateProgress({ stage, pct }) {
 }
 
 function showProgress(label, pct) {
+  document.getElementById('progress-label').classList.remove('hidden')
+  document.getElementById('progress-label').textContent = label
   document.getElementById('progress-bar-wrap').classList.remove('hidden')
   document.getElementById('progress-bar').style.width = `${pct}%`
-  document.getElementById('progress-label').textContent = label
 }
 
 function hideProgress() {
+  document.getElementById('progress-label').classList.add('hidden')
   document.getElementById('progress-bar-wrap').classList.add('hidden')
   document.getElementById('progress-bar').style.width = '0%'
 }
