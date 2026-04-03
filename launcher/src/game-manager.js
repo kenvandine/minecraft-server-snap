@@ -126,11 +126,12 @@ class GameManager {
   async install(onProgress) {
     const report = (stage, pct) => onProgress && onProgress({ stage, pct })
 
-    report('Checking Java...', 0)
-    await this._ensureJava((p) => report('Downloading Java...', p * 20))
-
-    report('Fetching version info...', 20)
+    report('Fetching version info...', 0)
     const versionJson = await this._fetchVersionJson()
+
+    report('Checking Java...', 5)
+    const javaComponent = versionJson.javaVersion?.component || 'java-runtime-delta'
+    await this._ensureJava(javaComponent, (p) => report('Downloading Java...', 5 + p * 20))
 
     report('Downloading Minecraft client...', 25)
     await this._downloadClient(versionJson, (p) => report('Downloading Minecraft...', 25 + p * 20))
@@ -152,18 +153,16 @@ class GameManager {
     return { ok: true }
   }
 
-  async _ensureJava(onProgress) {
+  async _ensureJava(runtimeKey, onProgress) {
     if (fs.existsSync(this.javaExecutable)) return
 
     const allRuntimes = await fetchJson(JAVA_MANIFEST)
     const platform = getMojangPlatform()
     const platformRuntimes = allRuntimes[platform] || allRuntimes['linux'] || {}
 
-    // Minecraft 1.21+ uses java-runtime-delta (Java 21)
-    const runtimeKey = 'java-runtime-delta'
     const runtimeList = platformRuntimes[runtimeKey]
     if (!runtimeList || runtimeList.length === 0) {
-      throw new Error(`No Java runtime found for platform ${platform}. Please install Java 21 manually.`)
+      throw new Error(`No Java runtime found for platform ${platform} with component '${runtimeKey}'. Please install Java manually.`)
     }
 
     const runtimeMeta = await fetchJson(runtimeList[0].manifest.url)
