@@ -165,8 +165,10 @@ class Auth {
       RelyingParty: 'http://auth.xboxlive.com',
       TokenType: 'JWT',
     })
+    if (!xblResp.Token) throw new Error(`Xbox Live auth failed: ${JSON.stringify(xblResp)}`)
     const xblToken = xblResp.Token
     const userHash = xblResp.DisplayClaims?.xui?.[0]?.uhs
+    if (!userHash) throw new Error('Xbox Live did not return a user hash')
 
     // Step 4: XSTS
     const xstsResp = await httpsPost(XSTS_URL, {
@@ -182,13 +184,16 @@ class Auth {
         : `XSTS error: ${xstsResp.XErr}`
       throw new Error(msg)
     }
+    if (!xstsResp.Token) throw new Error(`XSTS auth failed: ${JSON.stringify(xstsResp)}`)
     const xstsToken = xstsResp.Token
 
     // Step 5: Minecraft token
     const mcResp = await httpsPost(MC_AUTH_URL, {
       identityToken: `XBL3.0 x=${userHash};${xstsToken}`,
     })
-    if (!mcResp.access_token) throw new Error('Failed to get Minecraft access token')
+    if (!mcResp.access_token) {
+      throw new Error(`Failed to get Minecraft access token: ${JSON.stringify(mcResp)}`)
+    }
     this._accessToken = mcResp.access_token
     this._tokenExpiry = Date.now() + (mcResp.expires_in || 86400) * 1000
 
