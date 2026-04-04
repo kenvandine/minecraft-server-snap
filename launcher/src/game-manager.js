@@ -102,6 +102,7 @@ class GameManager {
     this.assetsDir = path.join(this.gameDir, 'assets')
     this.instanceDir = path.join(this.gameDir, 'instance')
     this.javaDir = path.join(userDataPath, 'java')
+    this.logsDir = path.join(userDataPath, 'logs')
     this._installed = false
     this._gameProcess = null
   }
@@ -335,14 +336,26 @@ class GameManager {
 
     onEvent && onEvent({ type: 'launching' })
 
+    await fsp.mkdir(this.logsDir, { recursive: true })
+    const logStream = fs.createWriteStream(path.join(this.logsDir, 'game.log'))
+    logStream.write(`=== Session started: ${new Date().toISOString()} ===\n`)
+
     this._gameProcess = spawn(java, args, {
       cwd: this.instanceDir,
       stdio: ['ignore', 'pipe', 'pipe'],
     })
 
-    this._gameProcess.stdout.on('data', (d) => onEvent && onEvent({ type: 'log', data: d.toString() }))
-    this._gameProcess.stderr.on('data', (d) => onEvent && onEvent({ type: 'log', data: d.toString() }))
+    this._gameProcess.stdout.on('data', (d) => {
+      logStream.write(d)
+      onEvent && onEvent({ type: 'log', data: d.toString() })
+    })
+    this._gameProcess.stderr.on('data', (d) => {
+      logStream.write(d)
+      onEvent && onEvent({ type: 'log', data: d.toString() })
+    })
     this._gameProcess.on('exit', (code) => {
+      logStream.write(`=== Session ended: ${new Date().toISOString()} (exit code ${code}) ===\n`)
+      logStream.end()
       this._gameProcess = null
       onEvent && onEvent({ type: 'exited', code })
     })
