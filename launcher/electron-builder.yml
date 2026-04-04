@@ -1,5 +1,6 @@
 appId: "com.minecraft.kadens-revenge"
 productName: "Kaden's Revenge"
+afterPack: build/afterPack.js
 icon: src/renderer/assets/icon.png
 directories:
   output: dist
@@ -23,8 +24,6 @@ linux:
       arch:
         - x64
   category: Game
-  executableArgs:
-    - --no-sandbox
 
 win:
   artifactName: "${name}-setup-${version}.${ext}"

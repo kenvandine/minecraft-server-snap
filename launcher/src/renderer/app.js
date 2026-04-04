@@ -26,6 +26,10 @@ async function init() {
     ul.appendChild(li)
   }
 
+  // Pre-fill saved offline username
+  const savedUsername = localStorage.getItem('offline-username')
+  if (savedUsername) document.getElementById('offline-username').value = savedUsername
+
   // Try to restore a cached session before showing the login UI
   if (manifest.azure_client_id) {
     await launcher.auth.restore()
@@ -167,6 +171,7 @@ document.getElementById('btn-login').addEventListener('click', async () => {
 document.getElementById('btn-offline-login').addEventListener('click', async () => {
   const username = document.getElementById('offline-username').value.trim()
   if (!username) { setStatus('Enter a username first.'); return }
+  localStorage.setItem('offline-username', username)
   const profile = await launcher.auth.offlineLogin(username)
   updateAuthUI({ authenticated: true, username: profile.username })
   setStatus(`Playing offline as ${profile.username}`)
