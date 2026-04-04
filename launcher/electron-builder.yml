@@ -23,6 +23,8 @@ linux:
       arch:
         - x64
   category: Game
+  executableArgs:
+    - --no-sandbox
 
 win:
   artifactName: "${name}-setup-${version}.${ext}"
