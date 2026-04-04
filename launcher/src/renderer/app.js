@@ -3,6 +3,7 @@
 let manifest = null
 let gameInstalled = false
 let authenticated = false
+let logLines = []
 
 async function init() {
   manifest = await launcher.getManifest()
@@ -123,11 +124,19 @@ function hideDeviceCode() {
   document.getElementById('device-code-section').classList.add('hidden')
 }
 
-function handleGameEvent({ type, code }) {
+function handleGameEvent({ type, code, data }) {
   if (type === 'launching') {
+    logLines = []
+    document.getElementById('log-content').textContent = ''
     setStatus('Game launched!')
     document.getElementById('btn-play').textContent = 'PLAYING...'
     document.getElementById('btn-play').disabled = true
+  }
+  if (type === 'log') {
+    logLines.push(data)
+    const el = document.getElementById('log-content')
+    el.textContent += data
+    el.scrollTop = el.scrollHeight
   }
   if (type === 'exited') {
     document.getElementById('btn-play').textContent = 'PLAY'
@@ -196,6 +205,23 @@ document.getElementById('btn-mode-offline').addEventListener('click', () => {
 document.getElementById('btn-mode-online').addEventListener('click', () => {
   document.getElementById('offline-section').classList.add('hidden')
   document.getElementById('online-auth').classList.remove('hidden')
+})
+
+document.getElementById('btn-toggle-log').addEventListener('click', () => {
+  document.getElementById('log-viewer').classList.remove('hidden')
+})
+
+document.getElementById('btn-close-log').addEventListener('click', () => {
+  document.getElementById('log-viewer').classList.add('hidden')
+})
+
+document.getElementById('btn-copy-log').addEventListener('click', () => {
+  const text = document.getElementById('log-content').textContent
+  navigator.clipboard.writeText(text)
+  const btn = document.getElementById('btn-copy-log')
+  const orig = btn.textContent
+  btn.textContent = 'Copied!'
+  setTimeout(() => { btn.textContent = orig }, 2000)
 })
 
 document.getElementById('btn-play').addEventListener('click', async () => {

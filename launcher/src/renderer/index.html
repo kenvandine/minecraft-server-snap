@@ -19,7 +19,20 @@
     <div id="hero">
       <img id="hero-bg" src="assets/shadowninjagames.png" alt="">
       <div id="hero-overlay"></div>
-      <div id="version-badge"></div>
+      <div id="log-viewer" class="hidden">
+        <div id="log-toolbar">
+          <span id="log-title">Game Log</span>
+          <button id="btn-copy-log" class="small-btn" title="Copy all">Copy All</button>
+          <button id="btn-close-log" class="small-btn" title="Close log">Close</button>
+        </div>
+        <pre id="log-content"></pre>
+      </div>
+      <div id="hero-bottom">
+        <div id="version-badge"></div>
+        <button id="btn-toggle-log" class="log-toggle-btn" title="Show game log">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1H2zm0 1h12v10H2V3zm1 1v1h10V4H3zm0 2.5v1h7v-1H3zm0 2.5v1h9V9H3z"/></svg>
+        </button>
+      </div>
     </div>
 
     <div id="sidebar">
