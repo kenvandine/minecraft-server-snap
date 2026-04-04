@@ -147,6 +147,7 @@ class GameManager {
 
     report('Installing mods...', 95)
     await this._installMods()
+    await this._installShaders()
 
     this._installed = true
     report('Ready!', 100)
@@ -302,6 +303,24 @@ class GameManager {
       if (!file.endsWith('.jar')) continue
       const src = path.join(srcModsDir, file)
       const dest = path.join(modsDir, file)
+      if (!fs.existsSync(dest)) {
+        await fsp.copyFile(src, dest)
+      }
+    }
+  }
+
+  async _installShaders() {
+    const shaderpacksDir = path.join(this.instanceDir, 'shaderpacks')
+    await fsp.mkdir(shaderpacksDir, { recursive: true })
+
+    const srcShaderpacksDir = path.join(this.resourcesPath, 'shaderpacks')
+    if (!fs.existsSync(srcShaderpacksDir)) return
+
+    const files = await fsp.readdir(srcShaderpacksDir)
+    for (const file of files) {
+      if (!file.endsWith('.zip')) continue
+      const src = path.join(srcShaderpacksDir, file)
+      const dest = path.join(shaderpacksDir, file)
       if (!fs.existsSync(dest)) {
         await fsp.copyFile(src, dest)
       }
