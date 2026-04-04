@@ -168,15 +168,36 @@ body {
   text-align: center;
 }
 
+#device-code-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 8px 0;
+}
+
 #device-code {
   font-size: 24px;
   font-weight: 700;
   letter-spacing: 4px;
   color: var(--accent-cyan);
-  margin: 8px 0;
   font-family: monospace;
   text-shadow: 0 0 12px rgba(0, 212, 204, 0.5);
 }
+
+.copy-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s, background 0.15s;
+}
+.copy-btn:hover { color: var(--accent-cyan); background: rgba(0, 212, 204, 0.1); }
+.copy-btn.copied { color: #4caf50; }
 
 #verification-url { color: var(--accent-cyan); }
 

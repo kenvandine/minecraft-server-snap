@@ -136,6 +136,20 @@ function handleGameEvent({ type, code }) {
 
 document.getElementById('btn-close').addEventListener('click', () => launcher.quit())
 
+document.getElementById('btn-copy-code').addEventListener('click', () => {
+  const code = document.getElementById('device-code').textContent
+  navigator.clipboard.writeText(code)
+  const btn = document.getElementById('btn-copy-code')
+  btn.classList.add('copied')
+  document.getElementById('copy-icon').classList.add('hidden')
+  document.getElementById('check-icon').classList.remove('hidden')
+  setTimeout(() => {
+    btn.classList.remove('copied')
+    document.getElementById('copy-icon').classList.remove('hidden')
+    document.getElementById('check-icon').classList.add('hidden')
+  }, 2000)
+})
+
 document.getElementById('btn-login').addEventListener('click', async () => {
   document.getElementById('btn-login').disabled = true
   setStatus('Waiting for login...')

@@ -42,7 +42,17 @@
       <div id="device-code-section" class="hidden">
         <p>Visit <strong id="verification-url"></strong></p>
         <p>and enter code:</p>
-        <div id="device-code"></div>
+        <div id="device-code-row">
+          <div id="device-code"></div>
+          <button id="btn-copy-code" class="copy-btn" title="Copy code">
+            <svg id="copy-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M4 2a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v1h1a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h1V2zm2 0v2h4V2a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zM3 4a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H3z"/>
+            </svg>
+            <svg id="check-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" class="hidden">
+              <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0z"/>
+            </svg>
+          </button>
+        </div>
         <button id="btn-open-url" class="small-btn">Open in browser</button>
       </div>
 
