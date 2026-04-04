@@ -5,12 +5,9 @@ const path = require('path')
 const GameManager = require('./game-manager')
 const Auth = require('./auth')
 
-// Linux-specific flags — must be set before app.whenReady().
+// Enable Wayland support on Linux — auto-selects Wayland when WAYLAND_DISPLAY
+// is set, falls back to X11 otherwise. Must be called before app.whenReady().
 if (process.platform === 'linux') {
-  // AppImages cannot have SUID binaries so the Chrome sandbox can never be
-  // configured correctly; disable it unconditionally on Linux.
-  app.commandLine.appendSwitch('no-sandbox')
-  // Auto-select Wayland when WAYLAND_DISPLAY is set, fall back to X11.
   app.commandLine.appendSwitch('ozone-platform-hint', 'auto')
   app.commandLine.appendSwitch('enable-features', 'WaylandWindowDecorations')
 }

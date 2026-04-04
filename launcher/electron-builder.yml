@@ -1,5 +1,6 @@
 appId: "com.minecraft.kadens-revenge"
 productName: "Kaden's Revenge"
+afterPack: build/afterPack.js
 icon: src/renderer/assets/icon.png
 directories:
   output: dist
