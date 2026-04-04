@@ -36,9 +36,15 @@ need it in your `pack.yaml`.
 ## Step 3 — Enable public client / device code flow
 
 1. In the left sidebar, click **Authentication**.
-2. Scroll to **"Advanced settings"**.
-3. Set **"Allow public client flows"** to **Yes**.
-4. Click **Save**.
+2. Under **"Platform configurations"**, click **"Add a platform"**.
+3. Choose **"Mobile and desktop applications"**.
+4. You can leave all redirect URIs unchecked and click **Configure**.
+5. Back on the Authentication page, scroll to the bottom to find **"Advanced settings"**.
+6. Set **"Allow public client flows"** to **Yes**.
+7. Click **Save**.
+
+> **Tip:** The "Advanced settings" section only appears after at least one platform is
+> configured. If you don't see it, make sure you completed steps 2–4 above.
 
 This allows the device code flow (no redirect URI needed).
 
@@ -48,10 +54,18 @@ This allows the device code flow (no redirect URI needed).
 
 1. In the left sidebar, click **API permissions**.
 2. Click **"Add a permission"**.
-3. Click **"APIs my organization uses"**, then search for **Xbox Live**.
-   - If it doesn't appear, click **"Microsoft APIs"** → scroll to find **Xbox Live**.
+3. Select the **"APIs my organization uses"** tab and search for **Xbox Live**.
+   - If nothing appears, try searching for just **Xbox**.
+   - If it still doesn't appear, select the **"Microsoft APIs"** tab and scroll down
+     to the **"Supported legacy APIs"** section — Xbox Live is listed there.
 4. Select **Delegated permissions** → check **XboxLive.signin**.
 5. Click **Add permissions**.
+
+> **Note:** In some newer Azure portal versions, Xbox Live may not appear at all in the
+> API permissions browser. This is a known portal inconsistency. If you cannot find it,
+> you can skip this step — the launcher requests the `XboxLive.signin` scope directly
+> in the OAuth request, and Microsoft will prompt the user to consent at sign-in time
+> without it needing to be pre-registered here.
 
 > You do **not** need to click "Grant admin consent" — this delegated permission is
 > granted by each user when they sign in.
