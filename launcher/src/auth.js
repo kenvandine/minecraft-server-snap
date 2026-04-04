@@ -69,11 +69,13 @@ function sleep(ms) {
 }
 
 class Auth {
-  constructor(clientId) {
+  constructor(clientId, userDataPath) {
     this.clientId = clientId
+    this._credPath = userDataPath ? path.join(userDataPath, 'auth-cache.json') : null
     this._profile = null
     this._accessToken = null
     this._tokenExpiry = 0
+    this._offline = false
   }
 
   getStatus() {
@@ -111,6 +113,102 @@ class Auth {
     this._profile = null
     this._accessToken = null
     this._tokenExpiry = 0
+    if (this._credPath) {
+      try { fs.unlinkSync(this._credPath) } catch {}
+    }
+  }
+
+  // Try to restore a cached session. Silently refreshes if the MC token is
+  // expired but a MS refresh token is available. Returns auth status.
+  async restore() {
+    if (!this._credPath || !this.clientId) return { authenticated: false }
+    try {
+      const data = JSON.parse(fs.readFileSync(this._credPath, 'utf8'))
+      if (data.accessToken && Date.now() < data.tokenExpiry) {
+        this._accessToken = data.accessToken
+        this._tokenExpiry = data.tokenExpiry
+        this._profile = data.profile
+        return this.getStatus()
+      }
+      if (data.refreshToken) {
+        const msToken = await this._refreshMsToken(data.refreshToken)
+        if (msToken.access_token) {
+          await this._authChain(msToken.access_token)
+          await this._save(msToken.refresh_token || data.refreshToken)
+          return this.getStatus()
+        }
+      }
+    } catch {}
+    return { authenticated: false }
+  }
+
+  async _refreshMsToken(refreshToken) {
+    return httpsPost(
+      MS_TOKEN_URL,
+      `client_id=${encodeURIComponent(this.clientId)}` +
+      `&grant_type=refresh_token` +
+      `&refresh_token=${encodeURIComponent(refreshToken)}`
+    )
+  }
+
+  // Runs the XBL → XSTS → MC token → MC profile chain.
+  // Sets this._accessToken, this._tokenExpiry, this._profile as side effects.
+  async _authChain(msAccessToken) {
+    const xblResp = await httpsPost(XBOX_AUTH_URL, {
+      Properties: {
+        AuthMethod: 'RPS',
+        SiteName: 'user.auth.xboxlive.com',
+        RpsTicket: `d=${msAccessToken}`,
+      },
+      RelyingParty: 'http://auth.xboxlive.com',
+      TokenType: 'JWT',
+    })
+    if (!xblResp.Token) throw new Error(`Xbox Live auth failed: ${JSON.stringify(xblResp)}`)
+    const xblToken = xblResp.Token
+    const userHash = xblResp.DisplayClaims?.xui?.[0]?.uhs
+    if (!userHash) throw new Error('Xbox Live did not return a user hash')
+
+    const xstsResp = await httpsPost(XSTS_URL, {
+      Properties: { SandboxId: 'RETAIL', UserTokens: [xblToken] },
+      RelyingParty: 'rp://api.minecraftservices.com/',
+      TokenType: 'JWT',
+    })
+    if (xstsResp.XErr) {
+      const msg = xstsResp.XErr === 2148916233
+        ? 'This Microsoft account does not have an Xbox account.'
+        : xstsResp.XErr === 2148916238
+        ? 'Child accounts must have parental approval.'
+        : `XSTS error: ${xstsResp.XErr}`
+      throw new Error(msg)
+    }
+    if (!xstsResp.Token) throw new Error(`XSTS auth failed: ${JSON.stringify(xstsResp)}`)
+    const xstsToken = xstsResp.Token
+
+    const mcResp = await httpsPost(MC_AUTH_URL, {
+      identityToken: `XBL3.0 x=${userHash};${xstsToken}`,
+    })
+    if (!mcResp.access_token) {
+      throw new Error(`Failed to get Minecraft access token: ${JSON.stringify(mcResp)}`)
+    }
+    this._accessToken = mcResp.access_token
+    this._tokenExpiry = Date.now() + (mcResp.expires_in || 86400) * 1000
+
+    const profile = await httpsGet(MC_PROFILE_URL, {
+      Authorization: `Bearer ${this._accessToken}`,
+    })
+    if (!profile.id) throw new Error('Failed to get Minecraft profile. Do you own Minecraft Java Edition?')
+    this._profile = profile
+  }
+
+  async _save(refreshToken) {
+    if (!this._credPath) return
+    const data = {
+      refreshToken,
+      accessToken: this._accessToken,
+      tokenExpiry: this._tokenExpiry,
+      profile: this._profile,
+    }
+    await fs.promises.writeFile(this._credPath, JSON.stringify(data), 'utf8')
   }
 
   async login(onDeviceCode) {
@@ -134,7 +232,7 @@ class Auth {
       expiresIn: deviceResp.expires_in,
     })
 
-    // Step 2: Poll for token
+    // Step 2: Poll for MS token
     const interval = (deviceResp.interval || 5) * 1000
     const deadline = Date.now() + deviceResp.expires_in * 1000
     let msToken = null
@@ -155,56 +253,11 @@ class Auth {
     }
     if (!msToken) throw new Error('Login timed out')
 
-    // Step 3: Xbox Live
-    const xblResp = await httpsPost(XBOX_AUTH_URL, {
-      Properties: {
-        AuthMethod: 'RPS',
-        SiteName: 'user.auth.xboxlive.com',
-        RpsTicket: `d=${msToken.access_token}`,
-      },
-      RelyingParty: 'http://auth.xboxlive.com',
-      TokenType: 'JWT',
-    })
-    if (!xblResp.Token) throw new Error(`Xbox Live auth failed: ${JSON.stringify(xblResp)}`)
-    const xblToken = xblResp.Token
-    const userHash = xblResp.DisplayClaims?.xui?.[0]?.uhs
-    if (!userHash) throw new Error('Xbox Live did not return a user hash')
+    // Steps 3–6: XBL → XSTS → MC token → MC profile
+    await this._authChain(msToken.access_token)
+    await this._save(msToken.refresh_token)
 
-    // Step 4: XSTS
-    const xstsResp = await httpsPost(XSTS_URL, {
-      Properties: { SandboxId: 'RETAIL', UserTokens: [xblToken] },
-      RelyingParty: 'rp://api.minecraftservices.com/',
-      TokenType: 'JWT',
-    })
-    if (xstsResp.XErr) {
-      const msg = xstsResp.XErr === 2148916233
-        ? 'This Microsoft account does not have an Xbox account.'
-        : xstsResp.XErr === 2148916238
-        ? 'Child accounts must have parental approval.'
-        : `XSTS error: ${xstsResp.XErr}`
-      throw new Error(msg)
-    }
-    if (!xstsResp.Token) throw new Error(`XSTS auth failed: ${JSON.stringify(xstsResp)}`)
-    const xstsToken = xstsResp.Token
-
-    // Step 5: Minecraft token
-    const mcResp = await httpsPost(MC_AUTH_URL, {
-      identityToken: `XBL3.0 x=${userHash};${xstsToken}`,
-    })
-    if (!mcResp.access_token) {
-      throw new Error(`Failed to get Minecraft access token: ${JSON.stringify(mcResp)}`)
-    }
-    this._accessToken = mcResp.access_token
-    this._tokenExpiry = Date.now() + (mcResp.expires_in || 86400) * 1000
-
-    // Step 6: Minecraft profile
-    const profile = await httpsGet(MC_PROFILE_URL, {
-      Authorization: `Bearer ${this._accessToken}`,
-    })
-    if (!profile.id) throw new Error('Failed to get Minecraft profile. Do you own Minecraft Java Edition?')
-    this._profile = profile
-
-    return { username: profile.name, uuid: profile.id }
+    return { username: this._profile.name, uuid: this._profile.id }
   }
 }
 

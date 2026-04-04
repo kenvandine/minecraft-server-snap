@@ -308,4 +308,18 @@ body {
 }
 .small-btn:hover { border-color: var(--text-dim); color: var(--text); }
 
+.mode-link {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 11px;
+  cursor: pointer;
+  width: 100%;
+  padding: 4px 0;
+  text-align: center;
+  text-decoration: underline;
+  transition: color 0.15s;
+}
+.mode-link:hover { color: var(--text); }
+
 .hidden { display: none !important; }

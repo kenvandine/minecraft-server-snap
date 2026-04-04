@@ -28,10 +28,14 @@
           <span id="account-name"></span>
           <button id="btn-logout" class="small-btn">Sign out</button>
         </div>
-        <button id="btn-login" class="action-btn hidden">Sign in with Microsoft</button>
+        <div id="online-auth" class="hidden">
+          <button id="btn-login" class="action-btn">Sign in with Microsoft</button>
+          <button id="btn-mode-offline" class="mode-link">Play offline instead</button>
+        </div>
         <div id="offline-section" class="hidden">
           <input id="offline-username" class="text-input" type="text" placeholder="Username" maxlength="16" spellcheck="false">
           <button id="btn-offline-login" class="action-btn">Play Offline</button>
+          <button id="btn-mode-online" class="mode-link hidden">Sign in with Microsoft instead</button>
         </div>
       </div>
 

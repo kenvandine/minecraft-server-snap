@@ -20,7 +20,7 @@ const manifest = require(path.join(resourcesPath, 'manifest.json'))
 let mainWindow
 let splashWindow
 const gameManager = new GameManager(resourcesPath, app.getPath('userData'), manifest)
-const auth = new Auth(manifest.azure_client_id)
+const auth = new Auth(manifest.azure_client_id, app.getPath('userData'))
 
 function createSplashWindow() {
   splashWindow = new BrowserWindow({
@@ -77,6 +77,7 @@ app.on('window-all-closed', () => {
 
 ipcMain.handle('app:manifest', () => manifest)
 
+ipcMain.handle('auth:restore', () => auth.restore())
 ipcMain.handle('auth:status', () => auth.getStatus())
 
 ipcMain.handle('auth:login', async () => {

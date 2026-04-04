@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('launcher', {
   openExternal: (url) => ipcRenderer.invoke('shell:open', url),
 
   auth: {
+    restore: () => ipcRenderer.invoke('auth:restore'),
     status: () => ipcRenderer.invoke('auth:status'),
     login: () => ipcRenderer.invoke('auth:login'),
     offlineLogin: (username) => ipcRenderer.invoke('auth:offline-login', username),

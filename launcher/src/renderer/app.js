@@ -26,14 +26,11 @@ async function init() {
     ul.appendChild(li)
   }
 
-  // Show the right auth UI based on whether online auth is configured
+  // Try to restore a cached session before showing the login UI
   if (manifest.azure_client_id) {
-    document.getElementById('btn-login').classList.remove('hidden')
-  } else {
-    document.getElementById('offline-section').classList.remove('hidden')
+    await launcher.auth.restore()
   }
 
-  // Check auth
   const authStatus = await launcher.auth.status()
   updateAuthUI(authStatus)
 
@@ -55,11 +52,18 @@ async function init() {
 
 function updateAuthUI(status) {
   authenticated = status.authenticated
+  const hasOnlineAuth = manifest && manifest.azure_client_id
+
   document.getElementById('account-info').classList.toggle('hidden', !status.authenticated)
   if (status.authenticated) {
     document.getElementById('account-name').textContent = status.username
-    document.getElementById('btn-login').classList.add('hidden')
+    document.getElementById('online-auth').classList.add('hidden')
     document.getElementById('offline-section').classList.add('hidden')
+  } else if (hasOnlineAuth) {
+    document.getElementById('online-auth').classList.remove('hidden')
+    document.getElementById('offline-section').classList.add('hidden')
+  } else {
+    document.getElementById('offline-section').classList.remove('hidden')
   }
   updatePlayBtn()
 }
@@ -161,13 +165,18 @@ document.getElementById('offline-username').addEventListener('keydown', (e) => {
 document.getElementById('btn-logout').addEventListener('click', async () => {
   await launcher.auth.logout()
   updateAuthUI({ authenticated: false })
-  // Restore the correct auth section
-  if (manifest && manifest.azure_client_id) {
-    document.getElementById('btn-login').classList.remove('hidden')
-  } else {
-    document.getElementById('offline-section').classList.remove('hidden')
-  }
   setStatus('Signed out.')
+})
+
+document.getElementById('btn-mode-offline').addEventListener('click', () => {
+  document.getElementById('online-auth').classList.add('hidden')
+  document.getElementById('offline-section').classList.remove('hidden')
+  document.getElementById('btn-mode-online').classList.remove('hidden')
+})
+
+document.getElementById('btn-mode-online').addEventListener('click', () => {
+  document.getElementById('offline-section').classList.add('hidden')
+  document.getElementById('online-auth').classList.remove('hidden')
 })
 
 document.getElementById('btn-play').addEventListener('click', async () => {
