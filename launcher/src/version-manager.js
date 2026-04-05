@@ -381,7 +381,12 @@ class VersionManager {
    */
   _extractTarXz(archivePath, destDir) {
     return new Promise((resolve, reject) => {
-      const proc = spawn('tar', ['-xJf', archivePath, '--no-same-owner', '-C', destDir])
+      const args = ['-xJf', archivePath, '-C', destDir]
+      // --no-same-owner is only supported on Linux/macOS, not Windows tar
+      if (process.platform !== 'win32') {
+        args.push('--no-same-owner')
+      }
+      const proc = spawn('tar', args)
       proc.on('exit', (code) => {
         if (code === 0) resolve()
         else reject(new Error(`tar exited with code ${code}`))
