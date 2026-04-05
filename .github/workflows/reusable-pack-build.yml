@@ -12,6 +12,11 @@ on:
         required: false
         default: latest
         type: string
+      version:
+        description: "Pack version override — computed from git tags by the caller (e.g. 1.0.0, devel, 0.0.1-3-gabcdef01). If empty, falls back to the version field in pack.yaml."
+        required: false
+        default: ''
+        type: string
       retention-days:
         description: Days to retain build artifacts (1–90)
         required: false
@@ -31,6 +36,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+
+      - name: Override pack version
+        if: inputs.version != ''
+        run: |
+          sed -i 's/^version:.*/version: "'"${{ inputs.version }}"'"/' ${{ inputs.config }}
 
       - uses: actions/setup-python@v6
         with:
