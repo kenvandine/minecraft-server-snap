@@ -36,6 +36,8 @@ class PackConfig:
     background_color: str = "#0d1117"
     background_image: Optional[str] = None
     azure_client_id: Optional[str] = None
+    server: Optional[str] = None
+    port: Optional[int] = None
 
     @classmethod
     def from_yaml(cls, path: str) -> "PackConfig":
@@ -72,6 +74,8 @@ class PackConfig:
             background_color=data.get("background_color", "#0d1117"),
             background_image=data.get("background_image"),
             azure_client_id=data.get("azure_client_id"),
+            server=data.get("server"),
+            port=int(data["port"]) if data.get("port") is not None else None,
         )
 
     def server_mods(self) -> List[Mod]:

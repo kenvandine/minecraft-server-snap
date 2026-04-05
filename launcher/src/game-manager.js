@@ -450,6 +450,8 @@ class GameManager {
       '--accessToken', authProfile.accessToken,
       '--userType', authProfile.userType || 'msa',
       '--versionType', 'release',
+      ...(this.manifest.server ? ['--server', this.manifest.server] : []),
+      ...(this.manifest.port ? ['--port', String(this.manifest.port)] : []),
     ]
   }
 }

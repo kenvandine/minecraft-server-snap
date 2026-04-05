@@ -66,6 +66,8 @@ def build_artifacts(config: PackConfig, output_dir: Path, cache_dir: Path) -> tu
         "background_color": config.background_color,
         "background_image": config.background_image,
         "azure_client_id": config.azure_client_id,
+        "server": config.server,
+        "port": config.port,
         "mods": [
             {"name": m.name, "filename": p.name, "side": m.side}
             for m, p in zip(config.client_mods(), client_mod_paths)

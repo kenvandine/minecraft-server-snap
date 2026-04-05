@@ -9,6 +9,8 @@
   "background_color": "#0d1117",
   "background_image": null,
   "azure_client_id": null,
+  "server": null,
+  "port": null,
   "mods": [
     {
       "name": "Fabric API",

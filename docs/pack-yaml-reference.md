@@ -142,6 +142,39 @@ azure_client_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 
 ---
 
+### `server` _(optional)_
+**Type**: string  
+**Default**: none
+
+The IP address or hostname of a Minecraft server to auto-connect to when the game
+launches. When set, the launcher passes `--server` to Minecraft, skipping the
+multiplayer menu and dropping the player directly into the server.
+
+This is typically injected at build time via a GitHub repository secret (`server_ip`)
+rather than committed to the YAML file.
+
+```yaml
+server: "play.example.com"
+```
+
+---
+
+### `port` _(optional)_
+**Type**: integer  
+**Default**: none (Minecraft defaults to 25565)
+
+The port of the server to auto-connect to. Only meaningful when `server` is also set.
+Passed as `--port` to Minecraft at launch.
+
+This is typically injected at build time via a GitHub repository secret (`server_port`)
+rather than committed to the YAML file.
+
+```yaml
+port: 25565
+```
+
+---
+
 ### `java_args` _(optional)_
 **Type**: string  
 **Default**: `"-Xms2G -Xmx4G"`
