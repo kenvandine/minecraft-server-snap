@@ -399,7 +399,7 @@ class GameManager {
     await fsp.writeFile(irisConfig, `shaderPack=${shaderPacks[0].filename}\n`)
   }
 
-  async launch(authProfile, onEvent) {
+  async launch(authProfile, onEvent, playerSettings) {
     if (this._gameProcess) throw new Error('Game is already running')
 
     // Use active manifest from version manager if available
@@ -430,7 +430,7 @@ class GameManager {
     }
 
     const classpath = this._buildClasspath(versionJson, fabricJson)
-    const jvmArgs = this._buildJvmArgs(versionJson, fabricJson)
+    const jvmArgs = this._buildJvmArgs(versionJson, fabricJson, playerSettings)
     const gameArgs = this._buildGameArgs(fabricJson, authProfile, versionJson)
 
     const java = this.javaExecutable
@@ -492,16 +492,36 @@ class GameManager {
     return jars.join(sep)
   }
 
-  _buildJvmArgs(versionJson, fabricJson) {
-    const memArgs = this.manifest.java_args
-      ? this.manifest.java_args.split(' ').filter(Boolean)
-      : ['-Xms2G', '-Xmx4G']
+  _buildJvmArgs(versionJson, fabricJson, playerSettings) {
+    // Memory: player setting > pack yaml > default 4G
+    const memory = playerSettings?.memory || null
+    let memArgs
+    if (memory) {
+      memArgs = [`-Xms${memory}`, `-Xmx${memory}`]
+    } else if (this.manifest.java_args) {
+      memArgs = this.manifest.java_args.split(' ').filter(Boolean)
+    } else {
+      memArgs = ['-Xms2G', '-Xmx4G']
+    }
 
-    const assetIndex = versionJson.assetIndex?.id || this.manifest.minecraft_version
     const nativesDir = path.join(this.versionsDir, this.manifest.minecraft_version, 'natives')
 
     const args = [
       ...memArgs,
+      // G1GC tuning for smooth client framerate
+      '-XX:+UseG1GC',
+      '-XX:+ParallelRefProcEnabled',
+      '-XX:MaxGCPauseMillis=50',
+      '-XX:+UnlockExperimentalVMOptions',
+      '-XX:+DisableExplicitGC',
+      '-XX:G1NewSizePercent=20',
+      '-XX:G1MaxNewSizePercent=40',
+      '-XX:G1HeapRegionSize=8M',
+      '-XX:G1ReservePercent=20',
+      '-XX:G1MixedGCCountTarget=4',
+      '-XX:InitiatingHeapOccupancyPercent=15',
+      '-XX:G1MixedGCLiveThresholdPercent=90',
+      '-XX:SurvivorRatio=32',
       `-Djava.library.path=${nativesDir}`,
       `-Dminecraft.launcher.brand=modpack-launcher`,
       `-Dminecraft.launcher.version=1.0`,
@@ -510,6 +530,12 @@ class GameManager {
     // macOS requires -XstartOnFirstThread for LWJGL/OpenGL
     if (process.platform === 'darwin') {
       args.push('-XstartOnFirstThread')
+    }
+
+    // Custom JVM args from player settings (appended last so they can override)
+    if (playerSettings?.jvmArgs) {
+      const custom = playerSettings.jvmArgs.split(' ').filter(Boolean)
+      args.push(...custom)
     }
 
     args.push('-cp', this._buildClasspath(versionJson, fabricJson))

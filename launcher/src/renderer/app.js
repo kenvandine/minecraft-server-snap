@@ -45,6 +45,11 @@ async function init() {
     }).catch(() => {})
   }
 
+  // Load player settings
+  const settings = await launcher.settings.get()
+  if (settings.memory) document.getElementById('memory-select').value = settings.memory
+  if (settings.jvmArgs) document.getElementById('jvm-args-input').value = settings.jvmArgs
+
   // Pre-fill saved offline username
   const savedUsername = localStorage.getItem('offline-username')
   if (savedUsername) document.getElementById('offline-username').value = savedUsername
@@ -350,6 +355,27 @@ document.getElementById('btn-copy-log').addEventListener('click', () => {
   btn.textContent = 'Copied!'
   setTimeout(() => { btn.textContent = orig }, 2000)
 })
+
+// ── Settings ──────────────────────────────────────────────────────────────────
+
+document.getElementById('btn-toggle-settings').addEventListener('click', () => {
+  const btn = document.getElementById('btn-toggle-settings')
+  const body = document.getElementById('settings-body')
+  btn.classList.toggle('open')
+  body.classList.toggle('hidden')
+})
+
+async function savePlayerSettings() {
+  const memory = document.getElementById('memory-select').value
+  const jvmArgs = document.getElementById('jvm-args-input').value.trim()
+  const settings = {}
+  if (memory) settings.memory = memory
+  if (jvmArgs) settings.jvmArgs = jvmArgs
+  await launcher.settings.save(settings)
+}
+
+document.getElementById('memory-select').addEventListener('change', savePlayerSettings)
+document.getElementById('jvm-args-input').addEventListener('change', savePlayerSettings)
 
 document.getElementById('btn-play').addEventListener('click', async () => {
   try {

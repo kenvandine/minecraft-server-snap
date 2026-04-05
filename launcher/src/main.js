@@ -2,6 +2,7 @@
 
 const { app, BrowserWindow, ipcMain, shell } = require('electron')
 const path = require('path')
+const fs = require('fs')
 const GameManager = require('./game-manager')
 const VersionManager = require('./version-manager')
 const Auth = require('./auth')
@@ -24,6 +25,22 @@ let splashWindow
 const versionManager = new VersionManager(resourcesPath, app.getPath('userData'), manifest)
 const gameManager = new GameManager(resourcesPath, app.getPath('userData'), manifest, versionManager)
 const auth = new Auth(manifest.azure_client_id, app.getPath('userData'))
+
+// ── Player settings ──────────────────────────────────────────────────────────
+
+const settingsPath = path.join(app.getPath('userData'), 'player-settings.json')
+
+function loadSettings() {
+  try {
+    return JSON.parse(fs.readFileSync(settingsPath, 'utf8'))
+  } catch {
+    return {}
+  }
+}
+
+function saveSettings(settings) {
+  fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2))
+}
 
 function createSplashWindow() {
   splashWindow = new BrowserWindow({
@@ -107,9 +124,16 @@ ipcMain.handle('game:install', async () => {
 ipcMain.handle('game:launch', async () => {
   const authProfile = auth.getProfile()
   if (!authProfile) throw new Error('Not authenticated')
+  const playerSettings = loadSettings()
   return gameManager.launch(authProfile, (event) => {
     mainWindow.webContents.send('game:event', event)
-  })
+  }, playerSettings)
+})
+
+ipcMain.handle('settings:get', () => loadSettings())
+ipcMain.handle('settings:save', (_e, settings) => {
+  saveSettings(settings)
+  return { ok: true }
 })
 
 ipcMain.handle('versions:list', () => versionManager.getAvailableVersions())
