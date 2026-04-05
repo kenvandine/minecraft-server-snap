@@ -24,6 +24,10 @@ contextBridge.exposeInMainWorld('launcher', {
     onEvent: (cb) => ipcRenderer.on('game:event', (_e, data) => cb(data)),
   },
 
+  server: {
+    ping: () => ipcRenderer.invoke('server:ping'),
+  },
+
   versions: {
     list: () => ipcRenderer.invoke('versions:list'),
     active: () => ipcRenderer.invoke('versions:active'),

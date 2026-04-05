@@ -218,6 +218,34 @@ body {
   margin-bottom: 6px;
 }
 
+#version-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#version-row select { flex: 1; }
+
+.icon-btn {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, color 0.15s, transform 0.3s;
+}
+.icon-btn:hover { border-color: var(--text-dim); color: var(--text); }
+.icon-btn.spinning svg { animation: spin 0.8s linear infinite; }
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 #version-dropdown {
   width: 100%;
   padding: 6px 8px;
@@ -242,6 +270,62 @@ body {
 #version-dropdown option {
   background: var(--surface);
   color: var(--text);
+}
+
+/* ── Server status ────────────────────────────────────────────────────────── */
+
+#server-status h3 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+#server-info {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+#server-status-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.indicator.online { background: #3fb950; box-shadow: 0 0 6px rgba(63, 185, 80, 0.5); }
+.indicator.offline { background: var(--text-dim); }
+
+#server-label {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+#server-pack-version {
+  font-size: 11px;
+  color: var(--accent-cyan);
+}
+
+#server-player-count {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.version-mismatch {
+  color: #d29922 !important;
+  font-weight: 600;
 }
 
 /* ── Mod list ─────────────────────────────────────────────────────────────── */

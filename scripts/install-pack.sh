@@ -69,5 +69,22 @@ if [ -f "$EXTRACT_DIR/server/manifest.json" ]; then
     cp "$EXTRACT_DIR/server/manifest.json" "$SERVER_DIR/manifest.json"
 fi
 
+# Set MOTD in server.properties to include pack name and version
+if [ -f "$SERVER_DIR/manifest.json" ]; then
+    PACK_NAME=$(python3 -c "import json; d=json.load(open('$SERVER_DIR/manifest.json')); print(d.get('name',''))" 2>/dev/null || true)
+    PACK_VERSION=$(python3 -c "import json; d=json.load(open('$SERVER_DIR/manifest.json')); print(d.get('version',''))" 2>/dev/null || true)
+    if [ -n "$PACK_NAME" ] && [ -n "$PACK_VERSION" ]; then
+        MOTD="$PACK_NAME v$PACK_VERSION"
+        PROPS_FILE="$SERVER_DIR/server.properties"
+        touch "$PROPS_FILE"
+        if grep -q "^motd=" "$PROPS_FILE"; then
+            sed -i "s/^motd=.*/motd=$MOTD/" "$PROPS_FILE"
+        else
+            echo "motd=$MOTD" >> "$PROPS_FILE"
+        fi
+        echo "Server MOTD set to: $MOTD"
+    fi
+fi
+
 echo "Done. Restart the server to apply:"
 echo "  sudo snap restart minecraft-server.server"

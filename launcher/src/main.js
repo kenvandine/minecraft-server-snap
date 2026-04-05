@@ -5,6 +5,7 @@ const path = require('path')
 const GameManager = require('./game-manager')
 const VersionManager = require('./version-manager')
 const Auth = require('./auth')
+const { pingServer, parsePackFromStatus } = require('./server-ping')
 
 // Enable Wayland support on Linux — auto-selects Wayland when WAYLAND_DISPLAY
 // is set, falls back to X11 otherwise. Must be called before app.whenReady().
@@ -119,6 +120,27 @@ ipcMain.handle('versions:switch', async (_e, version) => {
   })
 })
 ipcMain.handle('versions:fetch', () => versionManager.fetchReleases())
+
+ipcMain.handle('server:ping', async () => {
+  const currentManifest = await versionManager.getActiveManifest()
+  if (!currentManifest.server) return { online: false, error: 'No server configured' }
+  const host = currentManifest.server
+  const port = currentManifest.port || 25565
+  try {
+    const status = await pingServer(host, port)
+    const packInfo = parsePackFromStatus(status)
+    return {
+      online: true,
+      host,
+      port,
+      players: status.players,
+      version: status.version,
+      ...packInfo,
+    }
+  } catch (err) {
+    return { online: false, error: err.message }
+  }
+})
 
 ipcMain.handle('app:quit', () => app.quit())
 

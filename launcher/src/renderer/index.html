@@ -71,7 +71,35 @@
 
       <div id="version-selector" class="hidden">
         <h3>Pack Version</h3>
-        <select id="version-dropdown"></select>
+        <div id="version-row">
+          <select id="version-dropdown"></select>
+          <button id="btn-refresh-versions" class="icon-btn" title="Check for updates">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 3a5 5 0 0 0-4.546 2.914.5.5 0 0 1-.908-.418A6 6 0 0 1 14 8a.5.5 0 0 1-1 0 5 5 0 0 0-5-5z"/>
+              <path d="M8 13a5 5 0 0 0 4.546-2.914.5.5 0 0 1 .908.418A6 6 0 0 1 2 8a.5.5 0 0 1 1 0 5 5 0 0 0 5 5z"/>
+              <path d="M8 1.5a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0V2a.5.5 0 0 1 .5-.5z"/>
+              <path d="M3.5 3a.5.5 0 0 1 .354.146L5.207 4.5H3.5a.5.5 0 0 1 0-1z"/>
+              <path d="M8 14.5a.5.5 0 0 1-.5-.5v-2a.5.5 0 0 1 1 0v2a.5.5 0 0 1-.5.5z"/>
+              <path d="M12.5 13a.5.5 0 0 1-.354-.146L10.793 11.5H12.5a.5.5 0 0 1 0 1z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div id="server-status" class="hidden">
+        <h3>Server</h3>
+        <div id="server-info">
+          <div id="server-status-row">
+            <span id="server-indicator" class="indicator offline"></span>
+            <span id="server-label">Checking server...</span>
+          </div>
+          <div id="server-pack-info" class="hidden">
+            <span id="server-pack-version"></span>
+          </div>
+          <div id="server-players" class="hidden">
+            <span id="server-player-count"></span>
+          </div>
+        </div>
       </div>
 
       <div id="mods-list">

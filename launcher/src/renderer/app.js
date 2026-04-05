@@ -22,6 +22,14 @@ async function init() {
   // Populate mod list
   refreshModList(manifest.mods)
 
+  // Server status — only show if server is configured
+  if (manifest.server) {
+    document.getElementById('server-status').classList.remove('hidden')
+    pingServerStatus()
+    // Refresh server status every 60 seconds
+    setInterval(pingServerStatus, 60000)
+  }
+
   // Version selector — only show if github_repo is configured
   if (manifest.github_repo) {
     const activeVersion = await launcher.versions.active()
@@ -165,6 +173,55 @@ function refreshModList(mods) {
   }
 }
 
+async function pingServerStatus() {
+  const indicator = document.getElementById('server-indicator')
+  const label = document.getElementById('server-label')
+  const packInfo = document.getElementById('server-pack-info')
+  const packVersion = document.getElementById('server-pack-version')
+  const playersDiv = document.getElementById('server-players')
+  const playerCount = document.getElementById('server-player-count')
+
+  label.textContent = 'Checking server...'
+  indicator.className = 'indicator offline'
+
+  try {
+    const status = await launcher.server.ping()
+    if (status.online) {
+      indicator.className = 'indicator online'
+      label.textContent = 'Online'
+
+      if (status.packName && status.packVersion) {
+        packInfo.classList.remove('hidden')
+        const activeVersion = await launcher.versions.active()
+        if (status.packVersion !== activeVersion) {
+          packVersion.textContent = `Server: ${status.packName} v${status.packVersion} (mismatch)`
+          packVersion.classList.add('version-mismatch')
+        } else {
+          packVersion.textContent = `${status.packName} v${status.packVersion}`
+          packVersion.classList.remove('version-mismatch')
+        }
+      } else {
+        packInfo.classList.add('hidden')
+      }
+
+      if (status.players) {
+        playersDiv.classList.remove('hidden')
+        playerCount.textContent = `${status.players.online} / ${status.players.max} players`
+      }
+    } else {
+      indicator.className = 'indicator offline'
+      label.textContent = 'Offline'
+      packInfo.classList.add('hidden')
+      playersDiv.classList.add('hidden')
+    }
+  } catch {
+    indicator.className = 'indicator offline'
+    label.textContent = 'Unreachable'
+    packInfo.classList.add('hidden')
+    playersDiv.classList.add('hidden')
+  }
+}
+
 function populateVersionDropdown(versions, activeVersion) {
   const dropdown = document.getElementById('version-dropdown')
   dropdown.innerHTML = ''
@@ -190,10 +247,28 @@ document.getElementById('version-dropdown').addEventListener('change', async (e)
     document.getElementById('version-badge').textContent =
       `Minecraft ${manifest.minecraft_version} · Fabric ${manifest.mod_loader_version}`
     await installGame()
+    if (manifest.server) pingServerStatus()
   } catch (err) {
     setStatus(`Version switch failed: ${err.message}`)
     hideProgress()
     updatePlayBtn()
+  }
+})
+
+document.getElementById('btn-refresh-versions').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-refresh-versions')
+  btn.classList.add('spinning')
+  btn.disabled = true
+  try {
+    await launcher.versions.fetch()
+    const versions = await launcher.versions.list()
+    const active = await launcher.versions.active()
+    populateVersionDropdown(versions, active)
+  } catch (err) {
+    setStatus(`Failed to check for updates: ${err.message}`)
+  } finally {
+    btn.classList.remove('spinning')
+    btn.disabled = false
   }
 })
 
