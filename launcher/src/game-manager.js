@@ -343,13 +343,24 @@ class GameManager {
     const srcModsDir = path.join(this.resourcesPath, 'mods')
     if (!fs.existsSync(srcModsDir)) return
 
-    const files = await fsp.readdir(srcModsDir)
-    for (const file of files) {
-      if (!file.endsWith('.jar')) continue
+    // Determine which mod files the current pack ships
+    const bundledFiles = (await fsp.readdir(srcModsDir)).filter(f => f.endsWith('.jar'))
+    const bundledSet = new Set(bundledFiles)
+
+    // Copy new or updated mods
+    for (const file of bundledFiles) {
       const src = path.join(srcModsDir, file)
       const dest = path.join(modsDir, file)
       if (!fs.existsSync(dest)) {
         await fsp.copyFile(src, dest)
+      }
+    }
+
+    // Remove mods that were bundled by a previous version but are no longer shipped
+    const installedFiles = (await fsp.readdir(modsDir)).filter(f => f.endsWith('.jar'))
+    for (const file of installedFiles) {
+      if (!bundledSet.has(file)) {
+        await fsp.unlink(path.join(modsDir, file))
       }
     }
   }
@@ -401,6 +412,8 @@ class GameManager {
 
     await fsp.mkdir(this.instanceDir, { recursive: true })
     await this._ensureServersDat()
+    await this._installMods()
+    await this._installShaders()
 
     const classpath = this._buildClasspath(versionJson, fabricJson)
     const jvmArgs = this._buildJvmArgs(versionJson, fabricJson)
