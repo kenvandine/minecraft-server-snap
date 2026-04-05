@@ -92,6 +92,43 @@ function getPlatformName() {
   return 'linux'
 }
 
+/**
+ * Build a minimal servers.dat in NBT binary format with a single server entry.
+ * NBT spec: https://minecraft.wiki/w/NBT_format
+ */
+function buildServersDatNbt(name, ip) {
+  const parts = []
+
+  function writeByte(v) { const b = Buffer.alloc(1); b.writeUInt8(v); parts.push(b) }
+  function writeShort(v) { const b = Buffer.alloc(2); b.writeUInt16BE(v); parts.push(b) }
+  function writeInt(v) { const b = Buffer.alloc(4); b.writeInt32BE(v); parts.push(b) }
+  function writeString(s) { const b = Buffer.from(s, 'utf8'); writeShort(b.length); parts.push(b) }
+  function writeNamedTag(type, tagName) { writeByte(type); writeString(tagName) }
+
+  // Root TAG_Compound (empty name)
+  writeNamedTag(0x0A, '')
+
+  //   TAG_List "servers" of TAG_Compound, length 1
+  writeNamedTag(0x09, 'servers')
+  writeByte(0x0A)  // element type = TAG_Compound
+  writeInt(1)      // list length
+
+  //     Entry 0 (list elements have no name header)
+  //       TAG_String "name"
+  writeNamedTag(0x08, 'name')
+  writeString(name)
+  //       TAG_String "ip"
+  writeNamedTag(0x08, 'ip')
+  writeString(ip)
+  //     TAG_End (entry)
+  writeByte(0x00)
+
+  // TAG_End (root)
+  writeByte(0x00)
+
+  return Buffer.concat(parts)
+}
+
 class GameManager {
   constructor(resourcesPath, userDataPath, manifest) {
     this.resourcesPath = resourcesPath
@@ -357,6 +394,7 @@ class GameManager {
     )
 
     await fsp.mkdir(this.instanceDir, { recursive: true })
+    await this._ensureServersDat()
 
     const classpath = this._buildClasspath(versionJson, fabricJson)
     const jvmArgs = this._buildJvmArgs(versionJson, fabricJson)
@@ -438,6 +476,27 @@ class GameManager {
     ]
   }
 
+  /**
+   * Write servers.dat (NBT format) into the instance directory if a server is
+   * configured in the manifest and the file does not already exist.
+   */
+  async _ensureServersDat() {
+    if (!this.manifest.server) return
+
+    const serversDat = path.join(this.instanceDir, 'servers.dat')
+    try {
+      await fsp.access(serversDat)
+      return // already exists — don't overwrite user changes
+    } catch { /* file doesn't exist, create it */ }
+
+    const ip = this.manifest.port
+      ? `${this.manifest.server}:${this.manifest.port}`
+      : this.manifest.server
+    const serverName = this.manifest.name || 'Server'
+
+    await fsp.writeFile(serversDat, buildServersDatNbt(serverName, ip))
+  }
+
   _buildGameArgs(fabricJson, authProfile, versionJson) {
     const assetIndex = versionJson.assetIndex?.id || this.manifest.minecraft_version
     return [
@@ -450,8 +509,6 @@ class GameManager {
       '--accessToken', authProfile.accessToken,
       '--userType', authProfile.userType || 'msa',
       '--versionType', 'release',
-      ...(this.manifest.server ? ['--server', this.manifest.server] : []),
-      ...(this.manifest.port ? ['--port', String(this.manifest.port)] : []),
     ]
   }
 }
