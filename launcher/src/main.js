@@ -3,6 +3,7 @@
 const { app, BrowserWindow, ipcMain, shell } = require('electron')
 const path = require('path')
 const GameManager = require('./game-manager')
+const VersionManager = require('./version-manager')
 const Auth = require('./auth')
 
 // Enable Wayland support on Linux — auto-selects Wayland when WAYLAND_DISPLAY
@@ -19,7 +20,8 @@ const manifest = require(path.join(resourcesPath, 'manifest.json'))
 
 let mainWindow
 let splashWindow
-const gameManager = new GameManager(resourcesPath, app.getPath('userData'), manifest)
+const versionManager = new VersionManager(resourcesPath, app.getPath('userData'), manifest)
+const gameManager = new GameManager(resourcesPath, app.getPath('userData'), manifest, versionManager)
 const auth = new Auth(manifest.azure_client_id, app.getPath('userData'))
 
 function createSplashWindow() {
@@ -75,7 +77,7 @@ app.on('window-all-closed', () => {
 
 // ── IPC handlers ──────────────────────────────────────────────────────────────
 
-ipcMain.handle('app:manifest', () => manifest)
+ipcMain.handle('app:manifest', () => versionManager.getActiveManifest())
 
 ipcMain.handle('auth:restore', () => auth.restore())
 ipcMain.handle('auth:status', () => auth.getStatus())
@@ -108,6 +110,15 @@ ipcMain.handle('game:launch', async () => {
     mainWindow.webContents.send('game:event', event)
   })
 })
+
+ipcMain.handle('versions:list', () => versionManager.getAvailableVersions())
+ipcMain.handle('versions:active', () => versionManager.getActiveVersion())
+ipcMain.handle('versions:switch', async (_e, version) => {
+  return versionManager.switchVersion(version, (progress) => {
+    mainWindow.webContents.send('versions:progress', progress)
+  })
+})
+ipcMain.handle('versions:fetch', () => versionManager.fetchReleases())
 
 ipcMain.handle('app:quit', () => app.quit())
 

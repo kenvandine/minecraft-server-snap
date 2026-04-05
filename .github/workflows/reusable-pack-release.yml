@@ -94,6 +94,9 @@ jobs:
       - name: Build artifacts
         run: game-create build ${{ inputs.config }} --output ./dist
 
+      - name: Copy pack.yaml to dist
+        run: cp ${{ inputs.config }} dist/pack.yaml
+
       - name: Read pack metadata
         id: meta
         run: |
@@ -281,6 +284,8 @@ jobs:
             - **macOS (M4/Apple Silicon)**: Download the `.dmg`, open it, drag to Applications
           files: |
             all-artifacts/server.tar.xz
+            all-artifacts/client.tar.xz
+            all-artifacts/pack.yaml
             all-artifacts/*.AppImage
             all-artifacts/*.exe
             all-artifacts/*.dmg

@@ -11,6 +11,7 @@
   "azure_client_id": null,
   "server": null,
   "port": null,
+  "github_repo": null,
   "mods": [
     {
       "name": "Fabric API",

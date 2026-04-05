@@ -17,6 +17,7 @@ mod_loader_version: "latest"
 installer_version: "latest"
 
 azure_client_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+github_repo: "yourname/your-modpack"
 
 background_color: "#0d1117"
 # background_image: "https://example.com/background.png"
@@ -138,6 +139,24 @@ played on LAN or offline-mode servers.
 
 ```yaml
 azure_client_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+```
+
+---
+
+### `github_repo` _(optional)_
+**Type**: string  
+**Default**: none
+
+The GitHub repository (`owner/repo`) where pack releases are published. When set, the
+launcher displays a version selector that fetches available versions from the repo's
+GitHub releases. Players can switch between pack versions at runtime — the launcher
+downloads the `client.tar.xz` artifact from the selected release and installs it.
+
+Each release must include `client.tar.xz` as an asset for the version to appear in
+the selector. The `pack.yaml` asset is also downloaded if present.
+
+```yaml
+github_repo: "kadenvandine/kadens-minecraft-world"
 ```
 
 ---

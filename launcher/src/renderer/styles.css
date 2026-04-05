@@ -208,6 +208,42 @@ body {
 
 #verification-url { color: var(--accent-cyan); }
 
+/* ── Version selector ─────────────────────────────────────────────────────── */
+
+#version-selector h3 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+#version-dropdown {
+  width: 100%;
+  padding: 6px 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16' fill='%238b949e'%3E%3Cpath d='M4.427 7.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 7H4.604a.25.25 0 00-.177.427z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 28px;
+}
+
+#version-dropdown:focus { border-color: var(--accent); }
+
+#version-dropdown option {
+  background: var(--surface);
+  color: var(--text);
+}
+
 /* ── Mod list ─────────────────────────────────────────────────────────────── */
 
 #mods-list h3 {

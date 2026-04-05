@@ -133,9 +133,10 @@ function buildServersDatNbt(name, ip) {
 }
 
 class GameManager {
-  constructor(resourcesPath, userDataPath, manifest) {
+  constructor(resourcesPath, userDataPath, manifest, versionManager) {
     this.resourcesPath = resourcesPath
     this.manifest = manifest
+    this.versionManager = versionManager
     this.gameDir = path.join(userDataPath, 'game')
     this.versionsDir = path.join(this.gameDir, 'versions')
     this.librariesDir = path.join(this.gameDir, 'libraries')
@@ -190,8 +191,12 @@ class GameManager {
     await this._installFabric()
 
     report('Installing mods...', 95)
-    await this._installMods()
-    await this._installShaders()
+    if (this.versionManager) {
+      await this.versionManager.activatePack(this.instanceDir)
+    } else {
+      await this._installMods()
+      await this._installShaders()
+    }
     await this._enableDefaultShader()
 
     this._installed = true
@@ -397,6 +402,11 @@ class GameManager {
   async launch(authProfile, onEvent) {
     if (this._gameProcess) throw new Error('Game is already running')
 
+    // Use active manifest from version manager if available
+    if (this.versionManager) {
+      this.manifest = await this.versionManager.getActiveManifest()
+    }
+
     const versionJson = JSON.parse(
       await fsp.readFile(
         path.join(this.versionsDir, this.manifest.minecraft_version, `${this.manifest.minecraft_version}.json`),
@@ -412,8 +422,12 @@ class GameManager {
 
     await fsp.mkdir(this.instanceDir, { recursive: true })
     await this._ensureServersDat()
-    await this._installMods()
-    await this._installShaders()
+    if (this.versionManager) {
+      await this.versionManager.activatePack(this.instanceDir)
+    } else {
+      await this._installMods()
+      await this._installShaders()
+    }
 
     const classpath = this._buildClasspath(versionJson, fabricJson)
     const jvmArgs = this._buildJvmArgs(versionJson, fabricJson)

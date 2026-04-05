@@ -20,11 +20,21 @@ async function init() {
   }
 
   // Populate mod list
-  const ul = document.getElementById('mods-ul')
-  for (const mod of manifest.mods || []) {
-    const li = document.createElement('li')
-    li.textContent = mod.name
-    ul.appendChild(li)
+  refreshModList(manifest.mods)
+
+  // Version selector — only show if github_repo is configured
+  if (manifest.github_repo) {
+    const activeVersion = await launcher.versions.active()
+    const versions = await launcher.versions.list()
+    populateVersionDropdown(versions, activeVersion)
+    document.getElementById('version-selector').classList.remove('hidden')
+
+    // Fetch fresh releases in the background
+    launcher.versions.fetch().then(async () => {
+      const freshVersions = await launcher.versions.list()
+      const current = await launcher.versions.active()
+      populateVersionDropdown(freshVersions, current)
+    }).catch(() => {})
   }
 
   // Pre-fill saved offline username
@@ -145,7 +155,49 @@ function handleGameEvent({ type, code, data }) {
   }
 }
 
+function refreshModList(mods) {
+  const ul = document.getElementById('mods-ul')
+  ul.innerHTML = ''
+  for (const mod of mods || []) {
+    const li = document.createElement('li')
+    li.textContent = mod.name
+    ul.appendChild(li)
+  }
+}
+
+function populateVersionDropdown(versions, activeVersion) {
+  const dropdown = document.getElementById('version-dropdown')
+  dropdown.innerHTML = ''
+  for (const v of versions) {
+    const opt = document.createElement('option')
+    opt.value = v.version
+    opt.textContent = v.version + (v.bundled ? ' (bundled)' : '')
+    if (v.version === activeVersion) opt.selected = true
+    dropdown.appendChild(opt)
+  }
+}
+
 // ── Event listeners ────────────────────────────────────────────────────────────
+
+document.getElementById('version-dropdown').addEventListener('change', async (e) => {
+  const version = e.target.value
+  document.getElementById('btn-play').disabled = true
+  showProgress('Switching version...', 0)
+  try {
+    const newManifest = await launcher.versions.switch(version)
+    manifest = newManifest
+    refreshModList(newManifest.mods)
+    document.getElementById('version-badge').textContent =
+      `Minecraft ${manifest.minecraft_version} · Fabric ${manifest.mod_loader_version}`
+    await installGame()
+  } catch (err) {
+    setStatus(`Version switch failed: ${err.message}`)
+    hideProgress()
+    updatePlayBtn()
+  }
+})
+
+launcher.versions.onProgress(updateProgress)
 
 document.getElementById('btn-close').addEventListener('click', () => launcher.quit())
 

@@ -38,6 +38,7 @@ class PackConfig:
     azure_client_id: Optional[str] = None
     server: Optional[str] = None
     port: Optional[int] = None
+    github_repo: Optional[str] = None
 
     @classmethod
     def from_yaml(cls, path: str) -> "PackConfig":
@@ -76,6 +77,7 @@ class PackConfig:
             azure_client_id=data.get("azure_client_id"),
             server=data.get("server"),
             port=int(data["port"]) if data.get("port") is not None else None,
+            github_repo=data.get("github_repo"),
         )
 
     def server_mods(self) -> List[Mod]:
