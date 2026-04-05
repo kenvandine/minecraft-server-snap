@@ -26,6 +26,10 @@ on:
         required: true
       azure_client_id:
         required: false
+      server_ip:
+        required: false
+      server_port:
+        required: false
 
 jobs:
   build-artifacts:
@@ -67,6 +71,24 @@ jobs:
         run: |
           if [ -n "$AZURE_CLIENT_ID" ]; then
             python3 -c "import yaml,os; c='${{ inputs.config }}'; d=yaml.safe_load(open(c)); d['azure_client_id']=os.environ['AZURE_CLIENT_ID']; open(c,'w').write(yaml.dump(d,default_flow_style=False,allow_unicode=True))"
+          fi
+
+      - name: Inject server connection
+        env:
+          SERVER_IP: ${{ secrets.server_ip }}
+          SERVER_PORT: ${{ secrets.server_port }}
+        run: |
+          if [ -n "$SERVER_IP" ]; then
+            python3 -c "
+          import yaml, os
+          c = '${{ inputs.config }}'
+          d = yaml.safe_load(open(c))
+          d['server'] = os.environ['SERVER_IP']
+          port = os.environ.get('SERVER_PORT')
+          if port:
+              d['port'] = int(port)
+          open(c, 'w').write(yaml.dump(d, default_flow_style=False, allow_unicode=True))
+          "
           fi
 
       - name: Build artifacts
