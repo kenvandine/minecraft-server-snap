@@ -149,6 +149,7 @@ class GameManager {
     report('Installing mods...', 95)
     await this._installMods()
     await this._installShaders()
+    await this._enableDefaultShader()
 
     this._installed = true
     report('Ready!', 100)
@@ -326,6 +327,17 @@ class GameManager {
         await fsp.copyFile(src, dest)
       }
     }
+  }
+
+  async _enableDefaultShader() {
+    const shaderPacks = this.manifest.shader_packs
+    if (!shaderPacks || shaderPacks.length === 0) return
+
+    const irisConfig = path.join(this.instanceDir, 'config', 'iris.properties')
+    if (fs.existsSync(irisConfig)) return
+
+    await fsp.mkdir(path.dirname(irisConfig), { recursive: true })
+    await fsp.writeFile(irisConfig, `shaderPack=${shaderPacks[0].filename}\n`)
   }
 
   async launch(authProfile, onEvent) {
