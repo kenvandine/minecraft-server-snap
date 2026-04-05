@@ -44,7 +44,7 @@ fi
 echo "Extracting..."
 EXTRACT_DIR="$TMP_DIR/extract"
 mkdir -p "$EXTRACT_DIR"
-tar -xJf "$ARCHIVE" -C "$EXTRACT_DIR"
+tar -xJf "$ARCHIVE" -C "$EXTRACT_DIR" --no-same-owner
 
 if [ ! -f "$EXTRACT_DIR/server/server.jar" ]; then
     echo "Error: archive does not contain server/server.jar — is this a valid server.tar.xz?" >&2
