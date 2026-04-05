@@ -87,3 +87,11 @@ parts:
     override-build: |
       make
       install -D mcrcon $CRAFT_PART_INSTALL/bin/mcrcon
+
+  tools:
+    plugin: nil
+    stage-packages:
+      - curl
+      - tar
+      - unzip
+      - xz-utils
