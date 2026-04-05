@@ -120,6 +120,9 @@ function buildServersDatNbt(name, ip) {
   //       TAG_String "ip"
   writeNamedTag(0x08, 'ip')
   writeString(ip)
+  //       TAG_Byte "hidden" = 0 (false — show in server list)
+  writeNamedTag(0x01, 'hidden')
+  writeByte(0x00)
   //     TAG_End (entry)
   writeByte(0x00)
 
