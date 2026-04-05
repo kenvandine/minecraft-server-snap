@@ -80,8 +80,11 @@ function rulesMatch(rules) {
   if (!rules || rules.length === 0) return true
   let allow = false
   for (const rule of rules) {
-    const match = !rule.os || rule.os.name === getPlatformName()
-    if (match) allow = rule.action === 'allow'
+    const osMatch = !rule.os || (
+      rule.os.name === getPlatformName() &&
+      (!rule.os.arch || rule.os.arch === getArchName())
+    )
+    if (osMatch) allow = rule.action === 'allow'
   }
   return allow
 }
@@ -90,6 +93,12 @@ function getPlatformName() {
   if (process.platform === 'win32') return 'windows'
   if (process.platform === 'darwin') return 'osx'
   return 'linux'
+}
+
+function getArchName() {
+  if (process.arch === 'arm64') return 'arm64'
+  if (process.arch === 'x64') return 'x86_64'
+  return process.arch
 }
 
 /**
@@ -205,6 +214,31 @@ class GameManager {
   }
 
   async _ensureJava(runtimeKey, onProgress) {
+    // On arm64 macOS, check if a previously downloaded x64 Java needs replacing
+    if (process.platform === 'darwin' && process.arch === 'arm64' && fs.existsSync(this.javaDir)) {
+      const archMarker = path.join(this.javaDir, '.arch')
+      let existingArch = null
+      try { existingArch = (await fsp.readFile(archMarker, 'utf8')).trim() } catch {}
+      if (existingArch && existingArch !== 'arm64') {
+        // Marker says x64 — remove and re-download
+        await fsp.rm(this.javaDir, { recursive: true, force: true })
+      } else if (!existingArch && fs.existsSync(this.javaExecutable)) {
+        // No marker (pre-fix install) — check the binary with `file` command
+        try {
+          const { execSync } = require('child_process')
+          const output = execSync(`file "${this.javaExecutable}"`, { encoding: 'utf8' })
+          if (!output.includes('arm64')) {
+            await fsp.rm(this.javaDir, { recursive: true, force: true })
+          } else {
+            // Binary is arm64, just write the marker for next time
+            await fsp.writeFile(archMarker, 'arm64')
+          }
+        } catch {
+          // Can't determine — leave it, worst case Rosetta handles it
+        }
+      }
+    }
+
     if (fs.existsSync(this.javaExecutable)) return
 
     const allRuntimes = await fetchJson(JAVA_MANIFEST)
@@ -243,6 +277,9 @@ class GameManager {
       done++
       onProgress && onProgress(done / entries.length)
     }
+
+    // Write arch marker so we can detect stale cross-arch downloads later
+    await fsp.writeFile(path.join(this.javaDir, '.arch'), process.arch)
   }
 
   async _fetchVersionJson() {
@@ -530,6 +567,12 @@ class GameManager {
     // macOS requires -XstartOnFirstThread for LWJGL/OpenGL
     if (process.platform === 'darwin') {
       args.push('-XstartOnFirstThread')
+      // Use Metal-accelerated rendering pipeline on macOS
+      args.push('-Dsun.java2d.metal=true')
+      // Apple Silicon: enable transparent huge pages for unified memory
+      if (process.arch === 'arm64') {
+        args.push('-XX:+UseTransparentHugePages')
+      }
     }
 
     // Custom JVM args from player settings (appended last so they can override)
