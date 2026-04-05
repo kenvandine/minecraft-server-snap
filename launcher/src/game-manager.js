@@ -500,13 +500,20 @@ class GameManager {
     const assetIndex = versionJson.assetIndex?.id || this.manifest.minecraft_version
     const nativesDir = path.join(this.versionsDir, this.manifest.minecraft_version, 'natives')
 
-    return [
+    const args = [
       ...memArgs,
       `-Djava.library.path=${nativesDir}`,
       `-Dminecraft.launcher.brand=modpack-launcher`,
       `-Dminecraft.launcher.version=1.0`,
-      '-cp', this._buildClasspath(versionJson, fabricJson),
     ]
+
+    // macOS requires -XstartOnFirstThread for LWJGL/OpenGL
+    if (process.platform === 'darwin') {
+      args.push('-XstartOnFirstThread')
+    }
+
+    args.push('-cp', this._buildClasspath(versionJson, fabricJson))
+    return args
   }
 
   /**
