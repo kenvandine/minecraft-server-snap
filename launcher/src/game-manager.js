@@ -569,10 +569,6 @@ class GameManager {
       args.push('-XstartOnFirstThread')
       // Use Metal-accelerated rendering pipeline on macOS
       args.push('-Dsun.java2d.metal=true')
-      // Apple Silicon: enable transparent huge pages for unified memory
-      if (process.arch === 'arm64') {
-        args.push('-XX:+UseTransparentHugePages')
-      }
     }
 
     // Custom JVM args from player settings (appended last so they can override)
