@@ -154,6 +154,9 @@ class GameManager {
 
   get javaExecutable() {
     const bin = process.platform === 'win32' ? 'javaw.exe' : 'java'
+    if (process.platform === 'darwin') {
+      return path.join(this.javaDir, 'jre.bundle', 'Contents', 'Home', 'bin', bin)
+    }
     return path.join(this.javaDir, 'bin', bin)
   }
 
