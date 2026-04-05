@@ -88,6 +88,17 @@ sudo snap restart minecraft-server.server
 sudo snap logs -f minecraft-server.server
 ```
 
+### Configure server memory
+
+The server defaults to 2 GB of RAM. To increase it:
+
+```bash
+sudo snap set minecraft-server server-memory=4G
+sudo snap restart minecraft-server.server
+```
+
+Valid values are a number followed by `M` or `G` (e.g. `512M`, `2G`, `8G`).
+
 ### Send server commands
 
 ```bash
