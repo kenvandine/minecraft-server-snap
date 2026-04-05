@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Validate server-memory if set (e.g. "2G", "4G", "512M")
+MEMORY=$(snapctl get server-memory)
+if [ -n "$MEMORY" ]; then
+    if ! echo "$MEMORY" | grep -qE '^[0-9]+[MG]$'; then
+        echo "Invalid server-memory value: $MEMORY" >&2
+        echo "Must be a number followed by M or G (e.g. 2G, 4G, 512M)" >&2
+        exit 1
+    fi
+fi

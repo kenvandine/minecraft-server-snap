@@ -46,8 +46,11 @@ if ! grep -q "rcon.port" "$PROPS_FILE"; then
     echo "rcon.port=25575" >> "$PROPS_FILE"
 fi
 
-# Tuning flags for modern Minecraft (Aikar's flags simplified)
+# Read memory setting (default: 2G)
+SERVER_MEMORY=$(snapctl get server-memory)
+SERVER_MEMORY=${SERVER_MEMORY:-2G}
+
 exec java \
   -Djava.io.tmpdir="$SNAP_COMMON/tmp" \
-  -Xms2G -Xmx2G \
+  -Xms${SERVER_MEMORY} -Xmx${SERVER_MEMORY} \
   -jar "$JAR_FILE" nogui
