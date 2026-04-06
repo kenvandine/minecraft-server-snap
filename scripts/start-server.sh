@@ -67,4 +67,7 @@ exec java \
   -XX:InitiatingHeapOccupancyPercent=15 \
   -XX:G1MixedGCLiveThresholdPercent=90 \
   -XX:SurvivorRatio=32 \
+  -XX:+UseNUMA \
+  -XX:+AlwaysPreTouch \
+  -XX:+UseStringDeduplication \
   -jar "$JAR_FILE" nogui
