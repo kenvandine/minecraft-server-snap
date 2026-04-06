@@ -196,6 +196,9 @@ class GameManager {
     report('Downloading assets...', 65)
     await this._downloadAssets(versionJson, (p) => report('Downloading assets...', 65 + p * 20))
 
+    report('Extracting natives...', 82)
+    await this._extractNatives(versionJson)
+
     report('Installing Fabric...', 85)
     await this._installFabric()
 
@@ -323,6 +326,69 @@ class GameManager {
       done++
       onProgress && onProgress(done / libs.length)
     }
+  }
+
+  /**
+   * Extract native libraries (.dll, .so, .dylib) from native JAR files
+   * into the natives directory, matching what Prism/Lunar launchers do.
+   */
+  async _extractNatives(versionJson) {
+    const nativesDir = path.join(this.versionsDir, this.manifest.minecraft_version, 'natives')
+    const markerFile = path.join(nativesDir, '.extracted')
+
+    // Skip if already extracted
+    if (fs.existsSync(markerFile)) return
+
+    await fsp.mkdir(nativesDir, { recursive: true })
+
+    const nativeExtensions = ['.dll', '.so', '.dylib', '.jnilib']
+    const libs = versionJson.libraries.filter((lib) => rulesMatch(lib.rules))
+
+    for (const lib of libs) {
+      const artifact = lib.downloads?.artifact
+      if (!artifact) continue
+
+      // Only process native library JARs (contain "natives" in the path)
+      if (!artifact.path.includes('natives')) continue
+
+      const jarPath = path.join(this.librariesDir, artifact.path)
+      if (!fs.existsSync(jarPath)) continue
+
+      await this._extractNativesFromJar(jarPath, nativesDir, nativeExtensions)
+    }
+
+    // Write marker so we don't re-extract every launch
+    await fsp.writeFile(markerFile, new Date().toISOString())
+  }
+
+  _extractNativesFromJar(jarPath, destDir, extensions) {
+    return new Promise((resolve, reject) => {
+      const yauzl = require('yauzl')
+      yauzl.open(jarPath, { lazyEntries: true }, (err, zipfile) => {
+        if (err) return reject(err)
+        zipfile.readEntry()
+        zipfile.on('entry', (entry) => {
+          const ext = path.extname(entry.fileName).toLowerCase()
+          // Skip directories and META-INF
+          if (entry.fileName.endsWith('/') || entry.fileName.startsWith('META-INF/') || !extensions.includes(ext)) {
+            zipfile.readEntry()
+            return
+          }
+          const destPath = path.join(destDir, path.basename(entry.fileName))
+          zipfile.openReadStream(entry, (err2, readStream) => {
+            if (err2) return reject(err2)
+            const out = fs.createWriteStream(destPath)
+            readStream.pipe(out)
+            out.on('finish', () => {
+              zipfile.readEntry()
+            })
+            out.on('error', reject)
+          })
+        })
+        zipfile.on('end', resolve)
+        zipfile.on('error', reject)
+      })
+    })
   }
 
   async _downloadAssets(versionJson, onProgress) {
@@ -542,6 +608,7 @@ class GameManager {
     }
 
     const nativesDir = path.join(this.versionsDir, this.manifest.minecraft_version, 'natives')
+    const classpath = this._buildClasspath(versionJson, fabricJson)
 
     const args = [
       ...memArgs,
@@ -559,15 +626,29 @@ class GameManager {
       '-XX:InitiatingHeapOccupancyPercent=15',
       '-XX:G1MixedGCLiveThresholdPercent=90',
       '-XX:SurvivorRatio=32',
-      `-Djava.library.path=${nativesDir}`,
-      `-Dminecraft.launcher.brand=modpack-launcher`,
-      `-Dminecraft.launcher.version=1.0`,
+      '-XX:+UseNUMA',
+      '-XX:+AlwaysPreTouch',
+      '-XX:+UseStringDeduplication',
     ]
+
+    // Parse JVM args from Mojang's version JSON (platform-specific flags,
+    // native paths, LWJGL config, etc.) — this is what Prism/Lunar do
+    const mojangJvmArgs = this._parseMojangJvmArgs(versionJson, nativesDir, classpath)
+    args.push(...mojangJvmArgs)
+
+    // Ensure our essentials are present (Mojang args may set these too, but
+    // duplicates are harmless for -D properties)
+    if (!mojangJvmArgs.some(a => a.includes('java.library.path'))) {
+      args.push(`-Djava.library.path=${nativesDir}`)
+    }
+    args.push(`-Dminecraft.launcher.brand=modpack-launcher`)
+    args.push(`-Dminecraft.launcher.version=1.0`)
 
     // macOS requires -XstartOnFirstThread for LWJGL/OpenGL
     if (process.platform === 'darwin') {
-      args.push('-XstartOnFirstThread')
-      // Use Metal-accelerated rendering pipeline on macOS
+      if (!args.includes('-XstartOnFirstThread')) {
+        args.push('-XstartOnFirstThread')
+      }
       args.push('-Dsun.java2d.metal=true')
     }
 
@@ -577,8 +658,51 @@ class GameManager {
       args.push(...custom)
     }
 
-    args.push('-cp', this._buildClasspath(versionJson, fabricJson))
+    // Classpath — use Mojang's if not already included, otherwise add ours
+    if (!mojangJvmArgs.includes('-cp')) {
+      args.push('-cp', classpath)
+    }
+
     return args
+  }
+
+  /**
+   * Parse JVM arguments from Mojang's version JSON arguments.jvm array.
+   * Handles conditional rules and template variable substitution.
+   */
+  _parseMojangJvmArgs(versionJson, nativesDir, classpath) {
+    const jvmArgs = versionJson.arguments?.jvm
+    if (!jvmArgs || !Array.isArray(jvmArgs)) return []
+
+    const result = []
+    const vars = {
+      'natives_directory': nativesDir,
+      'launcher_name': 'modpack-launcher',
+      'launcher_version': '1.0',
+      'classpath': classpath,
+      'classpath_separator': process.platform === 'win32' ? ';' : ':',
+      'library_directory': this.librariesDir,
+    }
+
+    for (const entry of jvmArgs) {
+      if (typeof entry === 'string') {
+        result.push(this._substituteVars(entry, vars))
+      } else if (entry.rules && entry.value) {
+        // Conditional argument with rules
+        if (rulesMatch(entry.rules)) {
+          const values = Array.isArray(entry.value) ? entry.value : [entry.value]
+          for (const v of values) {
+            result.push(this._substituteVars(v, vars))
+          }
+        }
+      }
+    }
+
+    return result
+  }
+
+  _substituteVars(str, vars) {
+    return str.replace(/\$\{(\w+)\}/g, (_, key) => vars[key] || '')
   }
 
   /**
