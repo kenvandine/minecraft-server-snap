@@ -363,31 +363,23 @@ class GameManager {
 
   _extractNativesFromJar(jarPath, destDir, extensions) {
     return new Promise((resolve, reject) => {
-      const yauzl = require('yauzl')
-      yauzl.open(jarPath, { lazyEntries: true }, (err, zipfile) => {
-        if (err) return reject(err)
-        zipfile.readEntry()
-        zipfile.on('entry', (entry) => {
-          const ext = path.extname(entry.fileName).toLowerCase()
-          // Skip directories and META-INF
-          if (entry.fileName.endsWith('/') || entry.fileName.startsWith('META-INF/') || !extensions.includes(ext)) {
-            zipfile.readEntry()
-            return
-          }
-          const destPath = path.join(destDir, path.basename(entry.fileName))
-          zipfile.openReadStream(entry, (err2, readStream) => {
-            if (err2) return reject(err2)
-            const out = fs.createWriteStream(destPath)
-            readStream.pipe(out)
-            out.on('finish', () => {
-              zipfile.readEntry()
-            })
-            out.on('error', reject)
-          })
-        })
-        zipfile.on('end', resolve)
-        zipfile.on('error', reject)
+      // Use system unzip to extract native files from JAR (JARs are ZIP files).
+      // On Windows, use tar (which handles zip since Win10 1803).
+      const extArgs = extensions.map(e => `*${e}`)
+      let proc
+      if (process.platform === 'win32') {
+        // Windows tar can extract zip: tar -xf file.jar -C dest *.dll
+        proc = spawn('tar', ['-xf', jarPath, '-C', destDir, ...extArgs])
+      } else {
+        // unzip -o -j: overwrite, junk paths (flatten to destDir)
+        proc = spawn('unzip', ['-o', '-j', jarPath, ...extArgs, '-d', destDir])
+      }
+      proc.on('exit', (code) => {
+        // unzip returns 11 when no files match the pattern — that's fine
+        if (code === 0 || code === 11) resolve()
+        else reject(new Error(`Native extraction failed (code ${code}) for ${jarPath}`))
       })
+      proc.on('error', reject)
     })
   }
 
