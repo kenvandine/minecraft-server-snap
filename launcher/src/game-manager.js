@@ -361,26 +361,44 @@ class GameManager {
     await fsp.writeFile(markerFile, new Date().toISOString())
   }
 
-  _extractNativesFromJar(jarPath, destDir, extensions) {
-    return new Promise((resolve, reject) => {
-      // Use system unzip to extract native files from JAR (JARs are ZIP files).
-      // On Windows, use tar (which handles zip since Win10 1803).
-      const extArgs = extensions.map(e => `*${e}`)
-      let proc
-      if (process.platform === 'win32') {
-        // Windows tar can extract zip: tar -xf file.jar -C dest *.dll
-        proc = spawn('tar', ['-xf', jarPath, '-C', destDir, ...extArgs])
-      } else {
-        // unzip -o -j: overwrite, junk paths (flatten to destDir)
-        proc = spawn('unzip', ['-o', '-j', jarPath, ...extArgs, '-d', destDir])
-      }
-      proc.on('exit', (code) => {
-        // unzip returns 11 when no files match the pattern — that's fine
-        if (code === 0 || code === 11) resolve()
-        else reject(new Error(`Native extraction failed (code ${code}) for ${jarPath}`))
+  async _extractNativesFromJar(jarPath, destDir, extensions) {
+    if (process.platform === 'win32') {
+      // On Windows, use PowerShell to extract native files from JAR (ZIP)
+      const script = `
+        Add-Type -AssemblyName System.IO.Compression.FileSystem;
+        $zip = [System.IO.Compression.ZipFile]::OpenRead('${jarPath.replace(/'/g, "''")}');
+        try {
+          foreach ($entry in $zip.Entries) {
+            $ext = [System.IO.Path]::GetExtension($entry.FullName).ToLower();
+            if ($entry.FullName.StartsWith('META-INF/')) { continue }
+            if (@(${extensions.map(e => `'${e}'`).join(',')}) -contains $ext) {
+              $dest = Join-Path '${destDir.replace(/'/g, "''")}' $entry.Name;
+              [System.IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $dest, $true)
+            }
+          }
+        } finally { $zip.Dispose() }
+      `.replace(/\n/g, ' ')
+      return new Promise((resolve, reject) => {
+        const proc = spawn('powershell', ['-NoProfile', '-Command', script])
+        proc.on('exit', (code) => {
+          if (code === 0) resolve()
+          else reject(new Error(`Native extraction failed (code ${code}) for ${jarPath}`))
+        })
+        proc.on('error', reject)
       })
-      proc.on('error', reject)
-    })
+    } else {
+      // On Linux/macOS, use unzip -o -j (overwrite, junk paths)
+      return new Promise((resolve, reject) => {
+        const extArgs = extensions.map(e => `*${e}`)
+        const proc = spawn('unzip', ['-o', '-j', jarPath, ...extArgs, '-d', destDir])
+        proc.on('exit', (code) => {
+          // unzip returns 11 when no files match the pattern — that's fine
+          if (code === 0 || code === 11) resolve()
+          else reject(new Error(`Native extraction failed (code ${code}) for ${jarPath}`))
+        })
+        proc.on('error', reject)
+      })
+    }
   }
 
   async _downloadAssets(versionJson, onProgress) {
