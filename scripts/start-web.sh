@@ -9,4 +9,4 @@ export PORT
 export MC_HOST="localhost"
 export MC_PORT="25565"
 
-exec "$SNAP/bin/node" "$SNAP/server.js"
+exec "$SNAP/bin/minecraft-server-web"
