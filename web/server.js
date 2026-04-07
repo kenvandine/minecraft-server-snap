@@ -93,6 +93,12 @@ function motdToText(description) {
   return text.replace(/§[0-9a-fk-or]/gi, '').trim()
 }
 
+function parsePackFromMotd(motd) {
+  const match = motd.match(/^(.+?)\s+v(\d+\.\d+\.\d+.*)$/)
+  if (match) return { packName: match[1].trim(), packVersion: match[2].trim() }
+  return { packName: null, packVersion: null }
+}
+
 // ---------------------------------------------------------------------------
 // Minimal HTTP server (no framework dependency needed for routing)
 // ---------------------------------------------------------------------------
@@ -120,9 +126,13 @@ const server = http.createServer(async (req, res) => {
       const sample = Array.isArray(players.sample)
         ? players.sample.map(p => p.name).filter(Boolean)
         : []
+      const motd = motdToText(status.description)
+      const { packName, packVersion } = parsePackFromMotd(motd)
       res.end(JSON.stringify({
         online: true,
-        motd: motdToText(status.description),
+        motd,
+        packName,
+        packVersion,
         version: status.version ? status.version.name : null,
         players: {
           online: players.online || 0,

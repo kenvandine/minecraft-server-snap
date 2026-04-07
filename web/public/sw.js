@@ -1,5 +1,5 @@
-const CACHE_NAME = 'mc-status-v1'
-const APP_SHELL = ['/', '/app.js', '/style.css', '/manifest.json', '/icons/icon.svg']
+const CACHE_NAME = 'mc-status-v2'
+const APP_SHELL = ['/', '/app.js', '/style.css', '/manifest.json', '/icons/icon.svg', '/assets/shadowninjagames.png']
 
 self.addEventListener('install', event => {
   event.waitUntil(

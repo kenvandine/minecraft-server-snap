@@ -31,14 +31,17 @@ window.addEventListener('appinstalled', () => {
 })
 
 // ── DOM refs ─────────────────────────────────────────────────────────────────
-const badge      = document.getElementById('status-badge')
-const label      = document.getElementById('status-label')
-const motdEl     = document.getElementById('motd')
-const versionEl  = document.getElementById('version')
-const countEl    = document.getElementById('player-count')
-const listEl     = document.getElementById('player-list')
-const countdownEl= document.getElementById('countdown')
-const refreshBtn = document.getElementById('refresh-btn')
+const packNameEl    = document.getElementById('pack-name')
+const packVersionEl = document.getElementById('pack-version')
+const statusInd     = document.getElementById('status-indicator')
+const statusLabel   = document.getElementById('status-label')
+const statusText    = document.getElementById('status-text')
+const versionText   = document.getElementById('version-text')
+const playerCount   = document.getElementById('player-count')
+const playerList    = document.getElementById('player-list')
+const versionRow    = document.getElementById('version-row')
+const countdownEl   = document.getElementById('countdown')
+const refreshBtn    = document.getElementById('refresh-btn')
 
 // ── Status fetching ───────────────────────────────────────────────────────────
 async function fetchStatus() {
@@ -52,47 +55,63 @@ async function fetchStatus() {
 
 function renderStatus(data) {
   // Remove any existing offline banner
-  const existing = document.querySelector('.offline-banner')
-  if (existing) existing.remove()
+  document.querySelector('.offline-banner')?.remove()
 
   if (data.offline) {
-    // Can't reach the web server itself
     const banner = document.createElement('div')
     banner.className = 'offline-banner'
     banner.textContent = 'You are offline — showing last known state'
     document.querySelector('main').prepend(banner)
   }
 
-  badge.className = 'status-badge ' + (data.online ? 'online' : 'offline')
-  label.textContent = data.online ? 'Online' : 'Offline'
+  // Dynamic title: use pack name from MOTD if available
+  const title = data.packName || 'Minecraft Server'
+  packNameEl.textContent = title
+  document.title = title
 
-  motdEl.textContent  = data.motd    || ''
-  versionEl.textContent = data.version ? `Minecraft ${data.version}` : ''
+  packVersionEl.textContent = data.packVersion ? `v${data.packVersion}` : ''
+
+  // Status indicator + label (in hero badge)
+  statusInd.className = 'indicator ' + (data.online ? 'online' : 'offline')
+  statusLabel.textContent = data.online ? 'Online' : 'Offline'
+
+  // Status card
+  statusText.textContent = data.online ? 'Online' : 'Offline'
+  statusText.className = 'info-value ' + (data.online ? 'online-text' : 'offline-text')
+
+  if (data.version) {
+    versionText.textContent = data.version
+    versionRow.style.display = ''
+  } else {
+    versionRow.style.display = 'none'
+  }
 
   const players = data.players || { online: 0, max: 0, list: [] }
-  countEl.textContent = data.online
+  playerCount.textContent = data.online
     ? `${players.online} / ${players.max}`
     : '—'
 
-  listEl.innerHTML = ''
+  // Player list
+  playerList.innerHTML = ''
   if (!data.online) {
-    listEl.innerHTML = '<li class="empty">Server is offline</li>'
+    playerList.innerHTML = '<li class="dim">Server is offline</li>'
   } else if (players.list && players.list.length > 0) {
     players.list.forEach(name => {
       const li = document.createElement('li')
+      li.className = 'player-name'
       li.textContent = name
-      listEl.appendChild(li)
+      playerList.appendChild(li)
     })
     if (players.online > players.list.length) {
       const li = document.createElement('li')
-      li.className = 'empty'
-      li.textContent = `… and ${players.online - players.list.length} more`
-      listEl.appendChild(li)
+      li.className = 'dim'
+      li.textContent = `…and ${players.online - players.list.length} more`
+      playerList.appendChild(li)
     }
   } else if (players.online === 0) {
-    listEl.innerHTML = '<li class="empty">No players online</li>'
+    playerList.innerHTML = '<li class="dim">No players online</li>'
   } else {
-    listEl.innerHTML = '<li class="empty">Player list not available</li>'
+    playerList.innerHTML = '<li class="dim">Player list not available</li>'
   }
 }
 
@@ -101,28 +120,22 @@ const REFRESH_INTERVAL = 15
 let countdown = REFRESH_INTERVAL
 let intervalId = null
 
-function resetCountdown() {
-  countdown = REFRESH_INTERVAL
-  countdownEl.textContent = countdown
-}
-
 function startCountdown() {
   clearInterval(intervalId)
-  resetCountdown()
+  countdown = REFRESH_INTERVAL
+  countdownEl.textContent = countdown
   intervalId = setInterval(() => {
     countdown--
     countdownEl.textContent = countdown
-    if (countdown <= 0) {
-      refresh()
-    }
+    if (countdown <= 0) refresh()
   }, 1000)
 }
 
 async function refresh() {
-  refreshBtn.style.opacity = '0.5'
+  refreshBtn.classList.add('spinning')
   const data = await fetchStatus()
   renderStatus(data)
-  refreshBtn.style.opacity = ''
+  refreshBtn.classList.remove('spinning')
   startCountdown()
 }
 
