@@ -47,6 +47,13 @@ apps:
       - network
       - home
 
+  # Web status dashboard (PWA)
+  web:
+    command: bin/start-web.sh
+    daemon: simple
+    restart-condition: always
+    plugs: [network, network-bind]
+
 parts:
   launcher:
     plugin: dump
@@ -56,6 +63,13 @@ parts:
       mcron-wrapper.sh: bin/mcron-wrapper.sh
       publish-service.sh: bin/publish-service.sh
       install-pack.sh: bin/install-pack.sh
+      start-web.sh: bin/start-web.sh
+
+  web-dashboard:
+    plugin: npm
+    source: ./web
+    npm-include-node: true
+    npm-node-version: "20.19.0"
 
   jre:
     plugin: nil

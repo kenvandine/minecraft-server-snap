@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#5D9E25">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MC Status">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon.svg">
+  <link rel="stylesheet" href="/style.css">
+  <title>Minecraft Server Status</title>
+</head>
+<body>
+  <header>
+    <img src="/icons/icon.svg" alt="" class="header-icon">
+    <h1>Minecraft Server</h1>
+  </header>
+
+  <main>
+    <section class="status-card" id="status-card">
+      <div class="status-row">
+        <span class="status-badge" id="status-badge">…</span>
+        <span class="status-label" id="status-label">Checking…</span>
+      </div>
+      <p class="motd" id="motd"></p>
+      <p class="version" id="version"></p>
+    </section>
+
+    <section class="players-card" id="players-card">
+      <h2>
+        Players online
+        <span class="player-count" id="player-count">—</span>
+      </h2>
+      <ul class="player-list" id="player-list">
+        <li class="placeholder">Loading…</li>
+      </ul>
+    </section>
+
+    <div class="meta-row">
+      <span class="refresh-label" id="refresh-label">Refreshing in <span id="countdown">15</span>s</span>
+      <button class="refresh-btn" id="refresh-btn" aria-label="Refresh now">↺</button>
+    </div>
+
+    <button class="install-btn hidden" id="install-btn">
+      Add to Home Screen
+    </button>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

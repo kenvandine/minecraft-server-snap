@@ -1,0 +1,222 @@
+/* ── Reset & base ─────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #1a1a2e;
+  --surface:   #16213e;
+  --border:    #0f3460;
+  --green:     #5D9E25;
+  --green-lit: #7BC244;
+  --red:       #c0392b;
+  --text:      #e0e0e0;
+  --muted:     #8a8a9a;
+  --radius:    12px;
+  --gap:       16px;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* ── Layout ───────────────────────────────────────────────────────────────── */
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+header {
+  background: var(--surface);
+  border-bottom: 2px solid var(--green);
+  padding: 14px var(--gap);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.header-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+}
+
+header h1 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  color: var(--green-lit);
+}
+
+main {
+  flex: 1;
+  padding: var(--gap);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  max-width: 540px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* ── Cards ────────────────────────────────────────────────────────────────── */
+.status-card,
+.players-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--gap);
+}
+
+/* ── Status badge ─────────────────────────────────────────────────────────── */
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.status-badge {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex-shrink: 0;
+  transition: background .3s;
+}
+
+.status-badge.online  { background: var(--green);   box-shadow: 0 0 8px var(--green); }
+.status-badge.offline { background: var(--red);     box-shadow: 0 0 8px var(--red); }
+
+.status-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.motd {
+  color: var(--green-lit);
+  font-size: .95rem;
+  word-break: break-word;
+}
+
+.version {
+  color: var(--muted);
+  font-size: .8rem;
+  margin-top: 4px;
+}
+
+/* ── Players card ─────────────────────────────────────────────────────────── */
+.players-card h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.player-count {
+  background: var(--border);
+  color: var(--green-lit);
+  font-size: .8rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.player-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.player-list li {
+  padding: 8px 12px;
+  background: var(--bg);
+  border-radius: 8px;
+  font-size: .9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.player-list li::before {
+  content: '⚔';
+  font-size: .75rem;
+  color: var(--green);
+}
+
+.player-list .placeholder,
+.player-list .empty {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.player-list .placeholder::before,
+.player-list .empty::before { content: none; }
+
+/* ── Meta row ─────────────────────────────────────────────────────────────── */
+.meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.refresh-label {
+  font-size: .8rem;
+  color: var(--muted);
+}
+
+.refresh-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .2s;
+}
+
+.refresh-btn:hover  { background: var(--border); }
+.refresh-btn:active { transform: rotate(180deg); }
+
+/* ── Install button ───────────────────────────────────────────────────────── */
+.install-btn {
+  background: var(--green);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: background .2s;
+}
+
+.install-btn:hover { background: var(--green-lit); }
+.install-btn.hidden { display: none; }
+
+/* ── Offline banner ───────────────────────────────────────────────────────── */
+.offline-banner {
+  background: #3d1a1a;
+  border: 1px solid var(--red);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: .85rem;
+  color: #ff9f9f;
+  text-align: center;
+}

@@ -1,0 +1,12 @@
+{
+  "name": "minecraft-server-web",
+  "version": "1.0.0",
+  "description": "Minecraft server status web dashboard",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

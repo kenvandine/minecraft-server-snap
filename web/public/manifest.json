@@ -1,0 +1,19 @@
+{
+  "name": "Minecraft Server Status",
+  "short_name": "MC Status",
+  "description": "Monitor your Minecraft server status and online players",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a1a2e",
+  "theme_color": "#5D9E25",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["games", "utilities"]
+}
