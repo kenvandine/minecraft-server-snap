@@ -610,7 +610,12 @@ class GameManager {
     const memory = playerSettings?.memory || null
     let memArgs
     if (memory) {
-      memArgs = [`-Xms${memory}`, `-Xmx${memory}`]
+      // Set Xms lower than Xmx so the JVM can release memory back to the OS.
+      // Critical on Apple Silicon where GPU shares unified memory.
+      const maxVal = parseInt(memory)
+      const unit = memory.replace(/[0-9]/g, '') || 'G'
+      const minVal = Math.max(1, Math.ceil(maxVal / 2))
+      memArgs = [`-Xms${minVal}${unit}`, `-Xmx${memory}`]
     } else if (this.manifest.java_args) {
       memArgs = this.manifest.java_args.split(' ').filter(Boolean)
     } else {
@@ -628,18 +633,22 @@ class GameManager {
       '-XX:MaxGCPauseMillis=50',
       '-XX:+UnlockExperimentalVMOptions',
       '-XX:+DisableExplicitGC',
-      '-XX:G1NewSizePercent=20',
+      '-XX:G1NewSizePercent=30',
       '-XX:G1MaxNewSizePercent=40',
-      '-XX:G1HeapRegionSize=8M',
+      '-XX:G1HeapRegionSize=16M',
       '-XX:G1ReservePercent=20',
       '-XX:G1MixedGCCountTarget=4',
       '-XX:InitiatingHeapOccupancyPercent=15',
       '-XX:G1MixedGCLiveThresholdPercent=90',
       '-XX:SurvivorRatio=32',
-      '-XX:+UseNUMA',
-      '-XX:+AlwaysPreTouch',
-      '-XX:+UseStringDeduplication',
     ]
+
+    // NUMA and AlwaysPreTouch help on dedicated multi-socket servers but hurt
+    // on Apple Silicon where GPU shares unified memory — skip them on macOS
+    if (process.platform !== 'darwin') {
+      args.push('-XX:+UseNUMA')
+      args.push('-XX:+AlwaysPreTouch')
+    }
 
     // Parse JVM args from Mojang's version JSON (platform-specific flags,
     // native paths, LWJGL config, etc.) — this is what Prism/Lunar do
